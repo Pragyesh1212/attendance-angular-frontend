@@ -1,0 +1,651 @@
+
+<div class="min-h-screen bg-slate-50 p-4 md:p-6">
+
+  <!-- Header -->
+  <div class="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">Employee Management</h1>
+      <p class="mt-1 text-sm text-slate-500">
+        Manage employees and their information.
+      </p>
+    </div>
+
+    <button
+      (click)="openAddModal()"
+      class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700">
+      + Add Employee
+    </button>
+  </div>
+
+  <!-- Notifications -->
+  <div *ngIf="successMessage"
+    class="mb-5 flex justify-between rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+    {{ successMessage }}
+    <button (click)="successMessage = ''">✕</button>
+  </div>
+
+  <div *ngIf="errorMessage && !showAddModal"
+    class="mb-5 flex justify-between rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+    {{ errorMessage }}
+    <button (click)="errorMessage = ''">✕</button>
+  </div>
+
+  <!-- Statistics -->
+  <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex items-center gap-4">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl text-blue-600">
+          <span>♙</span>
+        </div>
+        <div>
+          <p class="text-sm text-slate-500">Total Employees</p>
+          <h2 class="mt-1 text-2xl font-bold text-slate-800">{{ totalEmployees }}</h2>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex items-center gap-4">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-xl text-indigo-600">
+          <span>▤</span>
+        </div>
+        <div>
+          <p class="text-sm text-slate-500">Current Page</p>
+          <h2 class="mt-1 text-2xl font-bold text-slate-800">
+            {{ currentPage }} / {{ totalPages || 1 }}
+          </h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="applyFilters()"
+        placeholder="Search employees..."
+        class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 xl:col-span-2"
+      />
+
+      <select
+        [(ngModel)]="departmentFilter"
+        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500">
+        <option value="">All Departments</option>
+        <option *ngFor="let department of departments" [value]="department.id">
+          {{ department.name }}
+        </option>
+      </select>
+
+      <select
+        [(ngModel)]="statusFilter"
+        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500">
+        <option value="">All Statuses</option>
+        <option value="ACTIVE">Active</option>
+        <option value="INACTIVE">Inactive</option>
+      </select>
+
+      <div class="flex gap-2">
+        <button
+          (click)="applyFilters()"
+          class="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          Apply
+        </button>
+
+        <button
+          (click)="resetFilters()"
+          class="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+          Reset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Employee Table -->
+  <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+
+    <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+      <h2 class="font-semibold text-slate-800">Employees</h2>
+      <span class="text-sm text-slate-500">{{ totalEmployees }} records</span>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="flex justify-center py-16">
+      <div class="h-9 w-9 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"></div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && employees.length === 0"
+      class="py-16 text-center">
+      <div class="mb-3 text-4xl text-slate-300">♙</div>
+      <h3 class="font-semibold text-slate-700">No employees found</h3>
+      <p class="mt-1 text-sm text-slate-500">
+        Try changing your filters or add a new employee.
+      </p>
+    </div>
+
+    <!-- Table -->
+    <div *ngIf="!loading && employees.length > 0" class="overflow-x-auto">
+      <table class="w-full min-w-[1250px] text-left text-sm">
+
+        <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+          <tr>
+            <th class="px-5 py-4 font-semibold">Employee</th>
+            <th class="px-5 py-4 font-semibold">Employee Code</th>
+            <th class="px-5 py-4 font-semibold">Department</th>
+            <th class="px-5 py-4 font-semibold">Shift</th>
+            <th class="px-5 py-4 font-semibold">Designation</th>
+            <th class="px-5 py-4 font-semibold">Phone</th>
+            <th class="px-5 py-4 font-semibold">Assigned Work Location</th>
+            <th class="px-5 py-4 font-semibold">Status</th>
+            <th class="px-5 py-4 text-right font-semibold">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody class="divide-y divide-slate-100">
+          <tr *ngFor="let employee of employees"
+            class="transition hover:bg-slate-50">
+
+            <td class="px-5 py-4">
+              <div class="flex items-center gap-3">
+                <img
+                  *ngIf="employee.employeeProfile.avatarUrl"
+                  [src]="employee.employeeProfile.avatarUrl"
+                  [alt]="getFullName(employee)"
+                  class="h-10 w-10 rounded-full object-cover"
+                />
+
+                <div *ngIf="!employee.employeeProfile.avatarUrl"
+                  class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-700">
+                  {{ getInitials(employee) }}
+                </div>
+
+                <div>
+                  <p class="font-semibold text-slate-800">
+                    {{ getFullName(employee) }}
+                  </p>
+                  <p class="mt-0.5 text-xs text-slate-500">
+                    {{ employee.email }}
+                  </p>
+                </div>
+              </div>
+            </td>
+
+            <td class="px-5 py-4 text-slate-600">
+              {{ employee.employeeProfile.employeeCode }}
+            </td>
+
+            <td class="px-5 py-4 text-slate-600">
+              {{ getDepartmentName(employee) }}
+            </td>
+
+            <td class="px-5 py-4 text-slate-600">
+              {{ getShiftName(employee) }}
+            </td>
+
+            <td class="px-5 py-4 text-slate-600">
+              {{ employee.employeeProfile.designation || '—' }}
+            </td>
+
+            <td class="px-5 py-4 text-slate-600">
+              {{ employee.employeeProfile.phone || '—' }}
+            </td>
+
+            <td class="px-5 py-4">
+              <ng-container *ngIf="getEffectiveWorkLocation(employee) as assignment; else noWorkLocation">
+                <div class="font-medium text-slate-800">
+                  {{ assignment.location.name }}
+                </div>
+                <div class="mt-1 flex flex-wrap items-center gap-2">
+                  <span class="rounded-full px-2 py-0.5 text-xs font-semibold"
+                    [ngClass]="assignment.assignmentType === 'TEMPORARY'
+                      ? 'bg-amber-100 text-amber-700'
+                      : 'bg-blue-100 text-blue-700'">
+                    {{ assignment.assignmentType }}
+                  </span>
+                  <span class="text-xs text-slate-500">
+                    {{ assignment.location.type }}
+                  </span>
+                </div>
+                <p *ngIf="assignment.assignmentType === 'TEMPORARY'"
+                  class="mt-1 max-w-xs text-xs text-slate-500">
+                  Until {{ assignment.endAt | date:'medium' }}
+                </p>
+              </ng-container>
+              <ng-template #noWorkLocation>
+                <span class="text-slate-400">Not assigned</span>
+              </ng-template>
+            </td>
+
+            <td class="px-5 py-4">
+              <span
+                class="rounded-full px-3 py-1 text-xs font-semibold"
+                [ngClass]="employee.status === 'ACTIVE'
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700'">
+                {{ employee.status }}
+              </span>
+            </td>
+
+            <td class="px-5 py-4">
+              <div class="flex justify-end">
+                <div class="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    (click)="openEditModal(employee)"
+                    class="rounded-lg border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-50">
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    (click)="openLocationModal(employee)"
+                    class="rounded-lg border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-50">
+                    Assign Location
+                  </button>
+                </div>
+              </div>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!loading && totalPages > 0"
+      class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-5 py-4">
+
+      <p class="text-sm text-slate-500">
+        Page {{ currentPage }} of {{ totalPages }}
+      </p>
+
+      <div class="flex gap-2">
+        <button
+          (click)="changePage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">
+          Previous
+        </button>
+
+        <button
+          (click)="changePage(currentPage + 1)"
+          [disabled]="currentPage >= totalPages"
+          class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">
+          Next
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ADD EMPLOYEE MODAL -->
+<div *ngIf="showAddModal"
+  class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 p-3 sm:p-6"
+  (click)="closeAddModal()">
+
+  <div
+    class="my-auto w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+    (click)="$event.stopPropagation()">
+
+    <!-- Modal Header -->
+    <div class="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+      <div>
+        <h2 class="text-xl font-bold text-slate-800">
+          {{ isEditMode ? 'Edit Employee' : 'Add New Employee' }}
+        </h2>
+        <p class="mt-1 text-sm text-slate-500">
+          {{ isEditMode ? 'Update employee information.' : 'Create a new employee account and profile.' }}
+        </p>
+      </div>
+
+      <button
+        type="button"
+        (click)="closeAddModal()"
+        class="text-2xl text-slate-400 hover:text-slate-700">
+        ×
+      </button>
+    </div>
+
+    <form [formGroup]="employeeForm" (ngSubmit)="saveEmployee()">
+
+      <div class="max-h-[65vh] space-y-6 overflow-y-auto p-6">
+
+        <!-- Personal Information -->
+        <section>
+          <h3 class="mb-4 border-b border-slate-100 pb-2 text-sm font-bold text-blue-700">
+            Personal Information
+          </h3>
+
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-slate-700">
+                First Name *
+              </label>
+              <input formControlName="firstName"
+                placeholder="Enter first name"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"/>
+
+              <p *ngIf="f.firstName.touched && f.firstName.invalid"
+                class="mt-1 text-xs text-red-600">
+                First name is required.
+              </p>
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-slate-700">
+                Last Name *
+              </label>
+              <input formControlName="lastName"
+                placeholder="Enter last name"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"/>
+
+              <p *ngIf="f.lastName.touched && f.lastName.invalid"
+                class="mt-1 text-xs text-red-600">
+                Last name is required.
+              </p>
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-slate-700">
+                Employee Code *
+              </label>
+              <input formControlName="employeeCode"
+                placeholder="e.g. EMP001"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-slate-100 disabled:text-slate-500"/>
+
+              <p *ngIf="f.employeeCode.touched && f.employeeCode.invalid"
+                class="mt-1 text-xs text-red-600">
+                Employee code is required.
+              </p>
+              <p *ngIf="isEditMode" class="mt-1 text-xs text-slate-500">
+                Employee code cannot be changed here.
+              </p>
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-slate-700">
+                Phone Number
+              </label>
+              <input formControlName="phone"
+                placeholder="Enter phone number"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"/>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Account Information -->
+        <section>
+          <h3 class="mb-4 border-b border-slate-100 pb-2 text-sm font-bold text-blue-700">
+            Account Information
+          </h3>
+
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-slate-700">
+                Email Address *
+              </label>
+              <input type="email" formControlName="email"
+                placeholder="employee@company.com"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"/>
+
+              <p *ngIf="f.email.touched && f.email.invalid"
+                class="mt-1 text-xs text-red-600">
+                Enter a valid email address.
+              </p>
+            </div>
+
+            <div *ngIf="!isEditMode">
+              <label class="mb-1.5 block text-sm font-medium text-slate-700">
+                Temporary Password *
+              </label>
+              <input type="password" formControlName="password"
+                placeholder="Minimum 12 characters"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"/>
+
+              <p *ngIf="f.password.touched && f.password.invalid"
+                class="mt-1 text-xs text-red-600">
+                Password must contain at least 12 characters.
+              </p>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Professional Information -->
+        <section>
+          <h3 class="mb-4 border-b border-slate-100 pb-2 text-sm font-bold text-blue-700">
+            Professional Information
+          </h3>
+
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-slate-700">
+                Designation
+              </label>
+              <input formControlName="designation"
+                placeholder="e.g. Software Developer"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"/>
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-slate-700">
+                Department
+              </label>
+              <select formControlName="departmentId"
+                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500">
+                <option value="">Select Department</option>
+                <option *ngFor="let department of departments"
+                  [value]="department.id">
+                  {{ department.name }}
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-slate-700">
+                Shift
+              </label>
+              <select formControlName="shiftId"
+                [disabled]="loadingShifts || shifts.length === 0"
+                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500">
+                <option value="">{{ isEditMode ? "Keep current shift" : "No shift assigned" }}</option>
+                <option *ngFor="let shift of shifts" [value]="shift.id">
+                  {{ shift.name }} ({{ shift.startTime }} - {{ shift.endTime }})
+                </option>
+              </select>
+              <p *ngIf="loadingShifts" class="mt-1 text-xs text-slate-500">
+                Loading active shifts...
+              </p>
+              <p *ngIf="!loadingShifts && shifts.length === 0"
+                class="mt-1 text-xs text-amber-700">
+                No active shifts available. Create or activate a shift first.
+              </p>
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-slate-700">
+                Joining Date
+              </label>
+              <input type="date" formControlName="joiningDate"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"/>
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-sm font-medium text-slate-700">
+                Profile Image URL
+              </label>
+              <input type="url" formControlName="avatarUrl"
+                placeholder="https://example.com/image.jpg"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"/>
+
+              <p *ngIf="f.avatarUrl.touched && f.avatarUrl.invalid"
+                class="mt-1 text-xs text-red-600">
+                Enter a valid HTTP or HTTPS URL.
+              </p>
+            </div>
+
+          </div>
+        </section>
+
+        <div *ngIf="errorMessage && showAddModal"
+          class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {{ errorMessage }}
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+
+        <button type="button"
+          (click)="closeAddModal()"
+          [disabled]="saving"
+          class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-50">
+          Cancel
+        </button>
+
+        <button type="submit"
+          [disabled]="saving"
+          class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+          {{ saving ? (isEditMode ? 'Saving...' : 'Creating...') : (isEditMode ? 'Save Changes' : 'Create Employee') }}
+        </button>
+
+      </div>
+
+    </form>
+  </div>
+</div>
+
+
+<!-- ASSIGN WORK LOCATION MODAL -->
+<div *ngIf="showLocationModal"
+  class="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-slate-900/50 p-3 sm:p-6"
+  (click)="closeLocationModal()">
+
+  <div
+    class="my-auto w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+    (click)="$event.stopPropagation()">
+
+    <div class="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+      <div>
+        <h2 class="text-xl font-bold text-slate-800">Assign Work Location</h2>
+        <p class="mt-1 text-sm text-slate-500">
+          {{ selectedEmployeeForLocation ? getFullName(selectedEmployeeForLocation) : '' }}
+        </p>
+      </div>
+      <button
+        type="button"
+        (click)="closeLocationModal()"
+        class="text-2xl text-slate-400 hover:text-slate-700">
+        ×
+      </button>
+    </div>
+
+    <div class="space-y-5 p-6">
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-slate-700">
+          Existing Work Location *
+        </label>
+        <select
+          [(ngModel)]="selectedWorkLocationId"
+          [ngModelOptions]="{standalone: true}"
+          class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+          <option value="">Select a created work location</option>
+          <option *ngFor="let location of workLocations" [value]="location.id">
+            {{ location.name }} · {{ location.type }}
+          </option>
+        </select>
+        <p *ngIf="workLocations.length === 0" class="mt-2 text-xs text-amber-700">
+          No active work locations found. Create and activate a location in the Work Locations module first.
+        </p>
+      </div>
+
+      <div>
+        <label class="mb-2 block text-sm font-medium text-slate-700">
+          Assignment Type *
+        </label>
+        <div class="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            (click)="locationAssignmentType = 'PERMANENT'"
+            [ngClass]="locationAssignmentType === 'PERMANENT'
+              ? 'border-blue-500 bg-blue-50 text-blue-700 ring-2 ring-blue-100'
+              : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'"
+            class="rounded-lg border px-4 py-3 text-sm font-semibold transition">
+            Permanent
+          </button>
+          <button
+            type="button"
+            (click)="locationAssignmentType = 'TEMPORARY'"
+            [ngClass]="locationAssignmentType === 'TEMPORARY'
+              ? 'border-blue-500 bg-blue-50 text-blue-700 ring-2 ring-blue-100'
+              : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'"
+            class="rounded-lg border px-4 py-3 text-sm font-semibold transition">
+            Temporary
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="locationAssignmentType === 'TEMPORARY'" class="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-slate-700">Start Date & Time *</label>
+            <input
+              type="datetime-local"
+              [(ngModel)]="temporaryStartAt"
+              [ngModelOptions]="{standalone: true}"
+              class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"/>
+          </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-slate-700">End Date & Time *</label>
+            <input
+              type="datetime-local"
+              [(ngModel)]="temporaryEndAt"
+              [ngModelOptions]="{standalone: true}"
+              class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"/>
+          </div>
+        </div>
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-slate-700">Reason</label>
+          <textarea
+            [(ngModel)]="temporaryReason"
+            [ngModelOptions]="{standalone: true}"
+            rows="2"
+            placeholder="Optional reason for temporary assignment"
+            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"></textarea>
+        </div>
+      </div>
+
+      <div *ngIf="locationErrorMessage"
+        class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        {{ locationErrorMessage }}
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+      <button
+        type="button"
+        (click)="closeLocationModal()"
+        [disabled]="assigningLocation"
+        class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-50">
+        Cancel
+      </button>
+      <button
+        type="button"
+        (click)="assignWorkLocation()"
+        [disabled]="assigningLocation || workLocations.length === 0"
+        class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">
+        {{ assigningLocation ? 'Assigning...' : 'Assign Location' }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,30 @@
+<div class="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+  <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+    <div><h1 class="text-2xl font-bold text-slate-800">Organization Management</h1><p class="mt-1 text-sm text-slate-500">Create and manage organizations and their active status.</p></div>
+    <button (click)="openCreate()" class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">+ Add Organization</button>
+  </div>
+  <div *ngIf="successMessage" class="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">{{ successMessage }}</div>
+  <div *ngIf="errorMessage && !showModal" class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{{ errorMessage }}</div>
+  <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div *ngIf="isLoading" class="p-12 text-center text-slate-500">Loading organizations...</div>
+    <div *ngIf="!isLoading && organizations.length === 0" class="p-12 text-center text-slate-500">No organizations found. Create your first organization.</div>
+    <div *ngIf="!isLoading && organizations.length" class="overflow-x-auto">
+      <table class="w-full min-w-[720px] text-left text-sm">
+        <thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="px-5 py-4">Organization</th><th class="px-5 py-4">Admins</th><th class="px-5 py-4">Total Users</th><th class="px-5 py-4">Status</th><th class="px-5 py-4">Created</th><th class="px-5 py-4">Actions</th></tr></thead>
+        <tbody class="divide-y divide-slate-100"><tr *ngFor="let org of organizations" class="hover:bg-slate-50">
+          <td class="px-5 py-4 font-semibold text-slate-800">{{ org.name }}</td><td class="px-5 py-4 text-slate-600">{{ org.adminCount ?? 0 }}</td><td class="px-5 py-4 text-slate-600">{{ org.userCount ?? 0 }}</td>
+          <td class="px-5 py-4"><span class="rounded-full px-3 py-1 text-xs font-semibold" [ngClass]="org.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">{{ org.status }}</span></td>
+          <td class="px-5 py-4 text-slate-600">{{ org.createdAt | date:'dd MMM yyyy' }}</td><td class="px-5 py-4"><button (click)="openEdit(org)" class="mr-3 font-semibold text-blue-600">Edit</button><button (click)="toggleStatus(org)" class="font-semibold" [ngClass]="org.status === 'ACTIVE' ? 'text-red-600' : 'text-green-600'">{{ org.status === 'ACTIVE' ? 'Deactivate' : 'Activate' }}</button></td>
+        </tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div *ngIf="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+  <div class="w-full max-w-lg rounded-2xl bg-white shadow-xl">
+    <div class="flex items-center justify-between border-b border-slate-200 p-5"><h2 class="text-xl font-bold text-slate-800">{{ editing ? 'Edit Organization' : 'Create Organization' }}</h2><button (click)="close()" class="text-2xl text-slate-400">×</button></div>
+    <form (ngSubmit)="save()" class="space-y-4 p-5"><div><label class="mb-1 block text-sm font-medium text-slate-700">Organization Name *</label><input name="name" [(ngModel)]="name" required minlength="2" maxlength="150" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 outline-none focus:border-blue-500" placeholder="Enter organization name"></div>
+      <div *ngIf="errorMessage" class="rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ errorMessage }}</div><div class="flex justify-end gap-3 border-t border-slate-100 pt-4"><button type="button" (click)="close()" [disabled]="isSaving" class="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold">Cancel</button><button type="submit" [disabled]="isSaving || name.trim().length < 2" class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{{ isSaving ? 'Saving...' : (editing ? 'Save Changes' : 'Create Organization') }}</button></div>
+    </form>
+  </div>
+</div>

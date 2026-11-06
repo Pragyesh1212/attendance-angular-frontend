@@ -1,0 +1,300 @@
+
+<div class="space-y-6">
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="rounded-xl border border-slate-200 bg-white p-10 text-center shadow-sm">
+      <div class="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"></div>
+      <p class="mt-4 text-sm text-slate-500">Loading dashboard...</p>
+    </div>
+  }
+
+  <!-- Error Message -->
+  @if (errorMessage) {
+    <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (!isLoading) {
+
+    <!-- Page Heading -->
+    <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-800">
+          {{ isEmployee ? 'My Dashboard' : 'Company Overview' }}
+        </h2>
+
+        <p class="mt-1 text-sm text-slate-500">
+          @if (isEmployee) {
+            Welcome back, {{ employeeName }}. Here's your attendance summary.
+          } @else {
+            Monitor company-wide workforce and attendance performance.
+          }
+        </p>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+
+      @for (card of summaryCards; track card.title) {
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-medium text-slate-500">
+              {{ card.title }}
+            </p>
+
+            <div
+              class="flex h-10 w-10 items-center justify-center rounded-lg text-lg font-bold"
+              [class.bg-blue-50]="card.color === 'blue'"
+              [class.text-blue-600]="card.color === 'blue'"
+              [class.bg-green-50]="card.color === 'green'"
+              [class.text-green-600]="card.color === 'green'"
+              [class.bg-red-50]="card.color === 'red'"
+              [class.text-red-600]="card.color === 'red'"
+              [class.bg-purple-50]="card.color === 'purple'"
+              [class.text-purple-600]="card.color === 'purple'">
+
+              {{ card.icon }}
+            </div>
+          </div>
+
+          <h3 class="mt-4 text-3xl font-bold text-slate-800">
+            {{ card.value }}
+          </h3>
+
+          <p class="mt-2 text-xs text-slate-500">
+            {{ card.change }}
+          </p>
+
+        </div>
+      }
+
+    </div>
+
+    <!-- ADMIN / SUPER ADMIN DASHBOARD -->
+    @if (!isEmployee) {
+
+      <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+
+        <!-- Attendance Trend -->
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-2">
+
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 class="font-semibold text-slate-800">
+                Attendance Overview
+              </h3>
+
+              <p class="mt-1 text-xs text-slate-500">
+                Daily attendance percentage for the selected month
+              </p>
+            </div>
+
+            <span class="rounded-lg bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700">
+              This Month
+            </span>
+          </div>
+
+          @if (attendanceTrend.length > 0) {
+
+            <div class="mt-8 flex h-56 items-end justify-around gap-2 overflow-x-auto border-b border-slate-100 pb-2">
+
+              @for (item of attendanceTrend; track item.date) {
+
+                <div class="flex h-full min-w-8 flex-1 flex-col items-center justify-end gap-2">
+
+                  <span class="text-xs font-medium text-slate-500">
+                    {{ item.value }}%
+                  </span>
+
+                  <div
+                    class="flex w-full max-w-12 items-end overflow-hidden rounded-t-md bg-blue-100"
+                    [style.height.%]="item.value">
+
+                    <div class="h-full w-full rounded-t-md bg-blue-600">
+                    </div>
+
+                  </div>
+
+                  <span class="text-xs text-slate-500">
+                    {{ item.date.substring(8, 10) }}
+                  </span>
+
+                </div>
+
+              }
+
+            </div>
+
+          } @else {
+
+            <div class="py-16 text-center">
+              <p class="text-sm text-slate-400">
+                No attendance trend data available.
+              </p>
+            </div>
+
+          }
+
+        </div>
+
+        <!-- Department Statistics -->
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+
+          <h3 class="font-semibold text-slate-800">
+            Department Attendance
+          </h3>
+
+          <p class="mt-1 text-xs text-slate-500">
+            Present employees by department
+          </p>
+
+          <div class="mt-6 space-y-5">
+
+            @for (department of departments; track department.name) {
+
+              <div>
+
+                <div class="mb-2 flex items-center justify-between gap-2">
+
+                  <span class="text-sm font-medium text-slate-700">
+                    {{ department.name }}
+                  </span>
+
+                  <span class="text-xs text-slate-500">
+                    {{ department.present }}/{{ department.total }}
+                  </span>
+
+                </div>
+
+                <div class="h-2 overflow-hidden rounded-full bg-slate-100">
+
+                  <div
+                    class="h-full rounded-full bg-blue-600"
+                    [style.width.%]="department.percentage">
+                  </div>
+
+                </div>
+
+              </div>
+
+            } @empty {
+
+              <p class="text-sm text-slate-400">
+                No department data available.
+              </p>
+
+            }
+
+          </div>
+
+        </div>
+
+      </div>
+
+    }
+
+    <!-- EMPLOYEE DASHBOARD -->
+    @if (isEmployee) {
+
+      <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+
+        <!-- Table Heading -->
+        <div class="border-b border-slate-100 p-5">
+
+          <h3 class="font-semibold text-slate-800">
+            My Recent Attendance
+          </h3>
+
+          <p class="mt-1 text-xs text-slate-500">
+            Your latest attendance records
+          </p>
+
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="overflow-x-auto">
+
+          <table class="w-full min-w-[650px] text-left">
+
+            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+
+              <tr>
+                <th class="px-5 py-4 font-semibold">Date</th>
+                <th class="px-5 py-4 font-semibold">Punch In</th>
+                <th class="px-5 py-4 font-semibold">Punch Out</th>
+                <th class="px-5 py-4 font-semibold">Work Hours</th>
+                <th class="px-5 py-4 font-semibold">Status</th>
+              </tr>
+
+            </thead>
+
+            <tbody class="divide-y divide-slate-100">
+
+              @for (record of recentAttendance; track record.date) {
+
+                <tr class="hover:bg-slate-50">
+
+                  <td class="px-5 py-4 text-sm font-medium text-slate-700">
+                    {{ record.date }}
+                  </td>
+
+                  <td class="px-5 py-4 text-sm text-slate-600">
+                    {{ record.punchIn }}
+                  </td>
+
+                  <td class="px-5 py-4 text-sm text-slate-600">
+                    {{ record.punchOut }}
+                  </td>
+
+                  <td class="px-5 py-4 text-sm text-slate-600">
+                    {{ record.workHours }}
+                  </td>
+
+                  <td class="px-5 py-4">
+
+                    <span
+                      class="rounded-full px-3 py-1 text-xs font-medium"
+                      [class.bg-green-50]="record.status === 'PRESENT'"
+                      [class.text-green-700]="record.status === 'PRESENT'"
+                      [class.bg-red-50]="record.status === 'ABSENT'"
+                      [class.text-red-700]="record.status === 'ABSENT'"
+                      [class.bg-yellow-50]="record.status === 'LATE'"
+                      [class.text-yellow-700]="record.status === 'LATE'"
+                      [class.bg-purple-50]="record.status === 'HALF_DAY'"
+                      [class.text-purple-700]="record.status === 'HALF_DAY'">
+
+                      {{ record.status.replace('_', ' ') }}
+
+                    </span>
+
+                  </td>
+
+                </tr>
+
+              } @empty {
+
+                <tr>
+                  <td colspan="5" class="px-5 py-10 text-center text-sm text-slate-400">
+                    No attendance records found.
+                  </td>
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    }
+
+  }
+
+</div>
