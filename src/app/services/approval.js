@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import * as i0 from "@angular/core";
 export class ApprovalService {
     http = inject(HttpClient);
-    base = 'http://localhost:3000/attendance';
+    base = '/attendance-api/attendance';
     getPendingApprovals() { return this.http.get(`${this.base}/approvals/pending`); }
     reviewApproval(id, body) {
         return this.http.post(`${this.base}/approvals/${id}/review`, body);

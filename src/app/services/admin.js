@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import * as i0 from "@angular/core";
 export class AdminService {
     http = inject(HttpClient);
-    API_URL = 'http://localhost:3000/users/admins';
+    API_URL = '/attendance-api/users/admins';
     getAdmins(page = 1, limit = 10, search = '', status = '') {
         let params = new HttpParams()
             .set('page', page)

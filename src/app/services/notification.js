@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import * as i0 from "@angular/core";
 export class NotificationService {
     http = inject(HttpClient);
-    base = 'http://localhost:3000/notifications';
+    base = '/attendance-api/notifications';
     getNotifications(page = 1, limit = 30, unreadOnly = false) {
         return this.http.get(this.base, { params: { page, limit, unreadOnly } });
     }

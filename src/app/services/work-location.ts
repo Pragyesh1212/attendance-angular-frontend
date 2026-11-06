@@ -40,7 +40,7 @@ export type UpdateWorkLocationPayload = Partial<CreateWorkLocationPayload>;
 export class WorkLocationService {
   private readonly http = inject(HttpClient);
 
-  private readonly apiUrl = 'http://localhost:3000/work-locations';
+  private readonly apiUrl = '/attendance-api/work-locations';
   private readonly nominatimUrl = 'https://nominatim.openstreetmap.org';
 
   private lastRequestAt = 0;

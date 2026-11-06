@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import * as i0 from "@angular/core";
 export class Attendance {
     http = inject(HttpClient);
-    API_URL = 'http://localhost:3000/attendance';
+    API_URL = '/attendance-api/attendance';
     buildParams(query = {}) {
         let params = new HttpParams();
         Object.entries(query).forEach(([key, value]) => {

@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import * as i0 from "@angular/core";
 export class EmployeeService {
     http = inject(HttpClient);
-    apiUrl = 'http://localhost:3000';
+    apiUrl = '/attendance-api';
     getEmployees(page = 1, limit = 10, search = '', status = '', departmentId = '') {
         let params = new HttpParams()
             .set('page', page)

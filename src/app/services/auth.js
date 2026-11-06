@@ -4,7 +4,7 @@ import { tap, finalize } from 'rxjs';
 import * as i0 from "@angular/core";
 export class Auth {
     http = inject(HttpClient);
-    API_URL = 'http://localhost:3000/auth';
+    API_URL = '/attendance-api/auth';
     // Login
     login(credentials) {
         return this.http.post(`${this.API_URL}/login`, credentials).pipe(tap(response => {

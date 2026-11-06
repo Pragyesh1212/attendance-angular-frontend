@@ -62,7 +62,7 @@ export interface UpdateAdminPayload {
 export class AdminService {
   private http = inject(HttpClient);
 
-  private readonly API_URL = 'http://localhost:3000/users/admins';
+  private readonly API_URL = '/attendance-api/users/admins';
 
   getAdmins(
     page = 1,

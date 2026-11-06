@@ -61,7 +61,7 @@ export interface AttendanceResponse {
 export class Attendance {
   private http = inject(HttpClient);
 
-  private readonly API_URL = 'http://localhost:3000/attendance';
+  private readonly API_URL = '/attendance-api/attendance';
 
   private buildParams(query: AttendanceQuery = {}): HttpParams {
     let params = new HttpParams();

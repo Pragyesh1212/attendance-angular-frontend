@@ -56,7 +56,7 @@ export class Dashboard implements OnInit {
   private auth = inject(Auth);
   private cdr = inject(ChangeDetectorRef);
 
-  private readonly API_URL = 'http://localhost:3000/dashboard';
+  private readonly API_URL = '/attendance-api/dashboard';
 
   userRole = this.auth.getUser()?.role ?? '';
   isEmployee = this.userRole === 'EMPLOYEE';

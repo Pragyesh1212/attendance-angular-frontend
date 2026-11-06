@@ -237,7 +237,7 @@ export class Dashboard {
     http = inject(HttpClient);
     auth = inject(Auth);
     cdr = inject(ChangeDetectorRef);
-    API_URL = 'http://localhost:3000/dashboard';
+    API_URL = '/attendance-api/dashboard';
     userRole = this.auth.getUser()?.role ?? '';
     isEmployee = this.userRole === 'EMPLOYEE';
     isLoading = true;

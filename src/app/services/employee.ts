@@ -101,7 +101,7 @@ export interface UpdateEmployeePayload {
 export class EmployeeService {
   private http = inject(HttpClient);
 
-  private readonly apiUrl = 'http://localhost:3000';
+  private readonly apiUrl = '/attendance-api';
 
   getEmployees(
     page = 1,

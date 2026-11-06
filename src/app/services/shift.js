@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import * as i0 from "@angular/core";
 export class ShiftService {
     http = inject(HttpClient);
-    API_URL = 'http://localhost:3000/shifts';
+    API_URL = '/attendance-api/shifts';
     getShifts() {
         return this.http.get(this.API_URL);
     }

@@ -35,7 +35,7 @@ export class DepartmentService {
 
   private http = inject(HttpClient);
 
-  private apiUrl = 'http://localhost:3000/departments';
+  private apiUrl = '/attendance-api/departments';
 
   getDepartments(): Observable<DepartmentsResponse> {
     return this.http.get<DepartmentsResponse>(this.apiUrl);

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import * as i0 from "@angular/core";
 export class DepartmentService {
     http = inject(HttpClient);
-    apiUrl = 'http://localhost:3000/departments';
+    apiUrl = '/attendance-api/departments';
     getDepartments() {
         return this.http.get(this.apiUrl);
     }

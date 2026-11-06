@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
   private readonly http = inject(HttpClient);
-  private readonly base = 'http://localhost:3000/notifications';
+  private readonly base = '/attendance-api/notifications';
   getNotifications(page = 1, limit = 30, unreadOnly = false): Observable<any> {
     return this.http.get<any>(this.base, { params: { page, limit, unreadOnly } });
   }

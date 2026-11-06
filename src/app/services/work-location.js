@@ -4,7 +4,7 @@ import { defer, of, switchMap, timer } from 'rxjs';
 import * as i0 from "@angular/core";
 export class WorkLocationService {
     http = inject(HttpClient);
-    apiUrl = 'http://localhost:3000/work-locations';
+    apiUrl = '/attendance-api/work-locations';
     nominatimUrl = 'https://nominatim.openstreetmap.org';
     lastRequestAt = 0;
     cache = new Map();

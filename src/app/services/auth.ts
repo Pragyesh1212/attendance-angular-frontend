@@ -29,7 +29,7 @@ export class Auth {
 
   private http = inject(HttpClient);
 
-  private readonly API_URL = 'http://localhost:3000/auth';
+  private readonly API_URL = '/attendance-api/auth';
 
   // Login
   login(credentials: {

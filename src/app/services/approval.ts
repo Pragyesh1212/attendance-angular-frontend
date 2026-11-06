@@ -7,7 +7,7 @@ export interface ReviewDecision { action: 'APPROVE' | 'REJECT'; rejectionReason?
 @Injectable({ providedIn: 'root' })
 export class ApprovalService {
   private readonly http = inject(HttpClient);
-  private readonly base = 'http://localhost:3000/attendance';
+  private readonly base = '/attendance-api/attendance';
 
   getPendingApprovals(): Observable<any[]> { return this.http.get<any[]>(`${this.base}/approvals/pending`); }
   reviewApproval(id: string, body: ReviewDecision): Observable<any> {

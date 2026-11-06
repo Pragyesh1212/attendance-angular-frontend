@@ -42,7 +42,7 @@ export interface ShiftResponse {
 export class ShiftService {
   private http = inject(HttpClient);
 
-  private readonly API_URL = 'http://localhost:3000/shifts';
+  private readonly API_URL = '/attendance-api/shifts';
 
   getShifts(): Observable<ShiftResponse> {
     return this.http.get<ShiftResponse>(this.API_URL);
