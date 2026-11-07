@@ -2,6 +2,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface AttendanceQuery {
   page?: number;
@@ -61,7 +62,7 @@ export interface AttendanceResponse {
 export class Attendance {
   private http = inject(HttpClient);
 
-  private readonly API_URL = '/attendance-api/attendance';
+  private readonly API_URL = `${environment.apiUrl}/attendance`;
 
   private buildParams(query: AttendanceQuery = {}): HttpParams {
     let params = new HttpParams();

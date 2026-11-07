@@ -2,6 +2,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export type EmployeeStatus = 'ACTIVE' | 'INACTIVE';
 
@@ -101,7 +102,7 @@ export interface UpdateEmployeePayload {
 export class EmployeeService {
   private http = inject(HttpClient);
 
-  private readonly apiUrl = '/attendance-api';
+  private readonly apiUrl = environment.apiUrl;
 
   getEmployees(
     page = 1,

@@ -9,6 +9,7 @@ import {
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { finalize } from 'rxjs';
 import { Auth } from '../../services/auth';
+import { environment } from '../../../environments/environment';
 
 interface SummaryCard {
   title: string;
@@ -56,7 +57,7 @@ export class Dashboard implements OnInit {
   private auth = inject(Auth);
   private cdr = inject(ChangeDetectorRef);
 
-  private readonly API_URL = '/attendance-api/dashboard';
+  private readonly API_URL = `${environment.apiUrl}/dashboard`;
 
   userRole = this.auth.getUser()?.role ?? '';
   isEmployee = this.userRole === 'EMPLOYEE';

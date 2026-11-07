@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export type OrganizationStatus = 'ACTIVE' | 'INACTIVE';
 
@@ -17,7 +18,7 @@ export interface Organization {
 @Injectable({ providedIn: 'root' })
 export class OrganizationService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = '/attendance-api/organizations';
+  private readonly API_URL = `${environment.apiUrl}/organizations`;
 
   getOrganizations(): Observable<{ data: Organization[] }> {
     return this.http.get<{ data: Organization[] }>(this.API_URL);

@@ -2,6 +2,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export type ShiftStatus = 'ACTIVE' | 'INACTIVE';
 
@@ -42,7 +43,7 @@ export interface ShiftResponse {
 export class ShiftService {
   private http = inject(HttpClient);
 
-  private readonly API_URL = '/attendance-api/shifts';
+  private readonly API_URL = `${environment.apiUrl}/shifts`;
 
   getShifts(): Observable<ShiftResponse> {
     return this.http.get<ShiftResponse>(this.API_URL);

@@ -2,6 +2,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, defer, of, switchMap, timer } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export type WorkLocationType = 'OFFICE' | 'REMOTE' | 'MEETING' | 'FIELD';
 
@@ -40,7 +41,7 @@ export type UpdateWorkLocationPayload = Partial<CreateWorkLocationPayload>;
 export class WorkLocationService {
   private readonly http = inject(HttpClient);
 
-  private readonly apiUrl = '/attendance-api/work-locations';
+  private readonly apiUrl = `${environment.apiUrl}/work-locations`;
   private readonly nominatimUrl = 'https://nominatim.openstreetmap.org';
 
   private lastRequestAt = 0;

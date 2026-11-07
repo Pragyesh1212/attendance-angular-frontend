@@ -2,6 +2,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Department {
   id: string;
@@ -35,7 +36,7 @@ export class DepartmentService {
 
   private http = inject(HttpClient);
 
-  private apiUrl = '/attendance-api/departments';
+  private apiUrl = `${environment.apiUrl}/departments`;
 
   getDepartments(): Observable<DepartmentsResponse> {
     return this.http.get<DepartmentsResponse>(this.apiUrl);

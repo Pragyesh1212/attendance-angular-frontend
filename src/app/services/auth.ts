@@ -2,6 +2,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, tap, finalize } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface AuthUser {
   id: string;
@@ -29,7 +30,7 @@ export class Auth {
 
   private http = inject(HttpClient);
 
-  private readonly API_URL = '/attendance-api/auth';
+  private readonly API_URL = `${environment.apiUrl}/auth`;
 
   // Login
   login(credentials: {
