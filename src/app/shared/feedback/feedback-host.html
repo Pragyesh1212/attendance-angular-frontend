@@ -1,0 +1,45 @@
+@if (feedback.toast(); as toast) {
+  <aside class="ae-feedback-toast" role="status" aria-live="polite">
+    <span class="ae-feedback-toast-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>
+    </span>
+    <div class="ae-feedback-copy">
+      <strong>{{ toast.title }}</strong>
+      <p>{{ toast.message }}</p>
+    </div>
+    <button class="ae-feedback-close" type="button" aria-label="Dismiss notification" (click)="feedback.dismissToast()">×</button>
+  </aside>
+}
+
+@if (feedback.dialog(); as dialog) {
+  <div class="ae-feedback-backdrop" (click)="feedback.close(false)" role="presentation">
+    <section class="ae-feedback-dialog" role="alertdialog" aria-modal="true"
+      aria-labelledby="ae-feedback-title" aria-describedby="ae-feedback-message"
+      [class.ae-feedback-warning]="dialog.kind === 'warning' || dialog.tone === 'warning'"
+      [class.ae-feedback-danger]="dialog.kind === 'error' || dialog.tone === 'danger'"
+      (click)="$event.stopPropagation()">
+      <div class="ae-feedback-top">
+        <div class="ae-feedback-symbol" aria-hidden="true">
+          @if (dialog.kind === 'error' || dialog.tone === 'danger') {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 17h.01"/></svg>
+          } @else if (dialog.kind === 'warning' || dialog.tone === 'warning') {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m10.3 3.8-8.2 14.3a2 2 0 0 0 1.7 3h16.4a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+          }
+        </div>
+        <button class="ae-feedback-close" type="button" aria-label="Close dialog" (click)="feedback.close(false)">×</button>
+      </div>
+      <h2 id="ae-feedback-title">{{ dialog.title }}</h2>
+      <p id="ae-feedback-message">{{ dialog.message }}</p>
+      <div class="ae-feedback-actions">
+        @if (dialog.kind === 'confirm') {
+          <button class="ae-feedback-cancel" type="button" (click)="feedback.close(false)">Cancel</button>
+        }
+        <button #primaryAction class="ae-feedback-primary" type="button"
+          [class.ae-feedback-destructive]="dialog.kind === 'confirm' && dialog.tone === 'danger'"
+          (click)="feedback.close(dialog.kind === 'confirm')">{{ dialog.confirmLabel }}</button>
+      </div>
+    </section>
+  </div>
+}

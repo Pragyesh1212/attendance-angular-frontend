@@ -1,3 +1,4 @@
+import { FeedbackService } from '../../shared/feedback/feedback.service';
 import { CommonModule } from '@angular/common';
 import { Component, ChangeDetectorRef, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -10,6 +11,22 @@ import { Organization, OrganizationService, OrganizationStatus } from '../../ser
   templateUrl: './organizations.html'
 })
 export class Organizations implements OnInit {
+  private readonly uiFeedback = inject(FeedbackService);
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get errorMessage(): string { return ''; }
+  set errorMessage(value: string) {
+    if (value) this.uiFeedback.error(value);
+  }
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get successMessage(): string { return ''; }
+  set successMessage(value: string) {
+    if (value) this.uiFeedback.success(value);
+  }
+
   private readonly service = inject(OrganizationService);
   private readonly cdr = inject(ChangeDetectorRef);
   organizations: Organization[] = [];
@@ -18,8 +35,8 @@ export class Organizations implements OnInit {
   showModal = false;
   editing: Organization | null = null;
   name = '';
-  errorMessage = '';
-  successMessage = '';
+  
+  
 
   ngOnInit(): void { this.load(); }
 
@@ -48,9 +65,15 @@ export class Organizations implements OnInit {
     });
   }
 
-  toggleStatus(org: Organization): void {
+  async toggleStatus(org: Organization): Promise<void> {
     const status: OrganizationStatus = org.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    if (!confirm(`${status === 'ACTIVE' ? 'Activate' : 'Deactivate'} ${org.name}?`)) return;
+    const confirmed = await this.uiFeedback.confirm({
+      title: status === 'ACTIVE' ? 'Activate organization?' : 'Deactivate organization?',
+      message: `${status === 'ACTIVE' ? 'Activate' : 'Deactivate'} ${org.name}?`,
+      confirmLabel: status === 'ACTIVE' ? 'Activate' : 'Deactivate',
+      tone: status === 'ACTIVE' ? 'primary' : 'warning'
+    });
+    if (!confirmed) return;
     this.service.updateOrganization(org.id, { status }).subscribe({
       next: result => { this.successMessage = result.message; this.load(); },
       error: error => { this.errorMessage = this.error(error); this.cdr.markForCheck(); }

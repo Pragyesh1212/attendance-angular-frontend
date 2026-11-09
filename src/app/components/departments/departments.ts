@@ -1,3 +1,4 @@
+import { FeedbackService } from '../../shared/feedback/feedback.service';
 
 import {
   Component,
@@ -23,6 +24,22 @@ import {
   templateUrl: './departments.html'
 })
 export class Departments implements OnInit {
+  private readonly uiFeedback = inject(FeedbackService);
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get errorMessage(): string { return ''; }
+  set errorMessage(value: string) {
+    if (value) this.uiFeedback.error(value);
+  }
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get successMessage(): string { return ''; }
+  set successMessage(value: string) {
+    if (value) this.uiFeedback.success(value);
+  }
+
 
   private departmentService = inject(DepartmentService);
   private cdr = inject(ChangeDetectorRef);
@@ -45,8 +62,8 @@ export class Departments implements OnInit {
     description: ''
   };
 
-  errorMessage = '';
-  successMessage = '';
+  
+  
 
   userRole = '';
 

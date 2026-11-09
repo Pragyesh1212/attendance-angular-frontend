@@ -1,3 +1,4 @@
+import { FeedbackService } from '../../shared/feedback/feedback.service';
 
 import {
   Component,
@@ -35,12 +36,29 @@ interface CalendarDay {
   styleUrl: './attendance.css'
 })
 export class AttendanceComponent implements OnInit, OnDestroy {
+  private readonly uiFeedback = inject(FeedbackService);
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get errorMessage(): string { return ''; }
+  set errorMessage(value: string) {
+    if (value) this.uiFeedback.error(value);
+  }
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get actionMessage(): string { return ''; }
+  set actionMessage(value: string) {
+    if (value) this.uiFeedback.success(value);
+  }
+
 
   private attendanceService = inject(Attendance);
   private authService = inject(Auth);
   private cdr = inject(ChangeDetectorRef);
 
   private clockInterval: ReturnType<typeof setInterval> | null = null;
+  private policyPollTicks = 0;
 
   user = this.authService.getUser();
 
@@ -53,7 +71,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   isLoading = false;
   isMonthlyLoading = false;
 
-  errorMessage = '';
+  
 
   viewMode: 'daily' | 'monthly' = 'daily';
 
@@ -75,13 +93,95 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   selectedDate = '';
 
   actionLoading = false;
-  actionMessage = '';
+  
   actionError = '';
 
   lateReason = '';
   showLateReason = false;
 
   locationMessage = '';
+
+  // The server is authoritative about both the configured cutoff and shift end.
+  // Fail closed on the employee screen until its policy has been confirmed.
+  private punchInOpensAtMs: number | null = null;
+  private punchInCutoffAtMs: number | null = null;
+  private serverConfirmedCutoff = false;
+  punchInPolicyReady = false;
+  punchInPolicyError = '';
+  punchInBeforeStartMessage = 'Your shift has not started yet. Punch In will be available at shift start.';
+  punchInCutoffMessage = 'Punch In is closed for your shift. Please contact your Admin.';
+
+  get isPunchInBeforeShift(): boolean {
+    return this.punchInPolicyReady &&
+      this.punchInOpensAtMs !== null &&
+      this.now.getTime() < this.punchInOpensAtMs;
+  }
+
+  get isPunchInCutoffReached(): boolean {
+    return this.punchInPolicyReady &&
+      (this.serverConfirmedCutoff ||
+        (this.punchInCutoffAtMs !== null && this.now.getTime() >= this.punchInCutoffAtMs));
+  }
+
+  get isPunchInUnavailable(): boolean {
+    return !this.punchInPolicyReady || this.isPunchInBeforeShift || this.isPunchInCutoffReached;
+  }
+
+  get punchInStatusMessage(): string {
+    if (!this.punchInPolicyReady) {
+      return this.punchInPolicyError || 'Checking your assigned shift policy...';
+    }
+    return this.isPunchInBeforeShift
+      ? this.punchInBeforeStartMessage
+      : this.punchInCutoffMessage;
+  }
+
+  private loadPunchInPolicy(): void {
+    if (!this.isEmployee) return;
+
+    this.attendanceService.getMyPunchInPolicy().subscribe({
+      next: policy => {
+        // A server still running the old cutoff-only policy MUST NOT
+        // silently enable Punch In. Require the new time-window contract.
+        if (!policy || typeof policy.cutoffReached !== 'boolean' ||
+            !['NOT_STARTED', 'OPEN', 'CLOSED'].includes(policy.status)) {
+          this.punchInPolicyReady = false;
+          this.punchInPolicyError = 'Unable to verify your updated shift policy. Please contact your Admin.';
+          this.cdr.markForCheck();
+          return;
+        }
+        const opening = policy.opensAt ? Date.parse(policy.opensAt) : NaN;
+        const closing = policy.cutoffAt ? Date.parse(policy.cutoffAt) : NaN;
+        if (policy.status !== 'CLOSED' &&
+            (!Number.isFinite(opening) || !Number.isFinite(closing))) {
+          this.punchInPolicyReady = false;
+          this.punchInPolicyError = 'Shift time configuration is incomplete. Please contact your Admin.';
+          this.cdr.markForCheck();
+          return;
+        }
+        this.punchInOpensAtMs = Number.isFinite(opening) ? opening : null;
+        this.punchInCutoffAtMs = Number.isFinite(closing) ? closing : null;
+        this.serverConfirmedCutoff = policy.status === 'CLOSED' || policy.cutoffReached;
+        this.punchInBeforeStartMessage = policy.status === 'NOT_STARTED' && policy.message
+          ? policy.message
+          : 'Your shift has not started yet. Punch In will be available at shift start.';
+        this.punchInCutoffMessage = policy.status === 'CLOSED' && policy.message
+          ? policy.message
+          : 'Punch In is closed for your shift. Please contact your Admin.';
+        this.punchInPolicyReady = true;
+        this.punchInPolicyError = '';
+        this.cdr.markForCheck();
+      },
+      error: error => {
+        // Never show an enabled Punch In button if the policy cannot be verified.
+        // This also surfaces missing routes (404) and authorization errors (401/403).
+        console.warn('Unable to load punch-in policy:', error);
+        this.punchInPolicyReady = false;
+        this.punchInPolicyError = 'Unable to verify your shift policy. Please retry or contact your Admin.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
 
   now = new Date();
 
@@ -206,10 +306,17 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   get isPunchOutAllowed(): boolean {
-    return !!this.activeSession &&
+    return !this.isAttendanceCompletedToday &&
+      !!this.activeSession &&
       ['NOT_REQUIRED', 'APPROVED'].includes(
         this.activeSession.approvalStatus
       );
+  }
+
+  // A finished attendance session means the employee has completed today's
+  // allowed punch-in and punch-out. Keep the button hidden after punch-out.
+  get isAttendanceCompletedToday(): boolean {
+    return this.todaySessions.some(session => !!session.punchOutAt);
   }
 
   get todayPunchIn(): string {
@@ -233,11 +340,18 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.loadPunchInPolicy();
     this.loadAttendance();
     this.loadMonthlyAttendance();
 
     this.clockInterval = setInterval(() => {
       this.now = new Date();
+      // Check for Admin changes to the shift policy every two minutes.
+      // The local clock still disables the button exactly at the cutoff.
+      if (this.isEmployee && !this.activeSession && !this.isAttendanceCompletedToday) {
+        this.policyPollTicks++;
+        if (this.policyPollTicks % 4 === 0) this.loadPunchInPolicy();
+      }
       this.cdr.markForCheck();
     }, 30000);
   }
@@ -405,6 +519,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   refreshAttendance(): void {
     this.now = new Date();
+    this.loadPunchInPolicy();
     this.loadAttendance();
     this.loadMonthlyAttendance();
   }
@@ -478,7 +593,13 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   punchIn(): void {
-    if (this.actionLoading || this.activeSession) return;
+    if (this.actionLoading || this.activeSession || this.isAttendanceCompletedToday || this.rejectedSession) return;
+    if (this.isPunchInUnavailable) {
+      this.actionError = this.punchInPolicyReady
+        ? this.punchInStatusMessage
+        : (this.punchInPolicyError || 'Checking your shift policy. Please try again.');
+      return;
+    }
 
     this.actionLoading = true;
     this.actionMessage = '';
@@ -526,6 +647,13 @@ export class AttendanceComponent implements OnInit, OnDestroy {
               `${message} Enter your reason below, then select Submit Late Reason & Punch In.`;
           } else {
             this.actionError = message;
+            if (error.status === 403 && /punch in is closed/i.test(message)) {
+              this.serverConfirmedCutoff = true;
+              this.punchInCutoffMessage = message;
+            } else if (error.status === 403 && /shift starts at/i.test(message)) {
+              this.punchInBeforeStartMessage = message;
+              this.loadPunchInPolicy();
+            }
           }
           this.cdr.markForCheck();
         }

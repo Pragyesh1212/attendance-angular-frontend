@@ -1,162 +1,293 @@
 
-<div class="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+<div class="admin-page">
 
-  <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+  <!-- Page Heading -->
+  <div class="admin-page-header">
     <div>
-      <h1 class="text-2xl font-bold text-slate-800">Admin Management</h1>
-      <p class="mt-1 text-sm text-slate-500">
+      <h1 class="admin-page-title">
+        Admin <span>Management</span>
+      </h1>
+      <p class="admin-page-subtitle">
         Create and manage administrator accounts.
       </p>
     </div>
 
-    <button
-      (click)="openCreateModal()"
-      class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">
-      + Add Admin
+    <button class="add-admin-btn" (click)="openCreateModal()">
+      <span class="btn-plus">+</span>
+      Add Admin
     </button>
   </div>
 
-  <div
-    *ngIf="successMessage"
-    class="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+  <!-- Messages -->
+  <div *ngIf="successMessage" class="admin-alert success-alert">
     {{ successMessage }}
   </div>
 
-  <div
-    *ngIf="errorMessage && !showModal"
-    class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+  <div *ngIf="errorMessage && !showModal" class="admin-alert error-alert">
     {{ errorMessage }}
   </div>
 
-  <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+  <!-- Total Administrators -->
+  <div class="admin-summary-card">
 
-    <!-- Search and filters -->
-    <div class="grid grid-cols-1 gap-3 border-b border-slate-200 p-5 sm:grid-cols-3">
+    <div class="summary-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M20 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+    </div>
+
+    <div class="summary-content">
+      <p>Total Administrators</p>
+      <h2>{{ total }}</h2>
+    </div>
+
+    <div class="summary-decoration">
+      <svg viewBox="0 0 120 90" fill="currentColor">
+        <circle cx="60" cy="22" r="17"/>
+        <circle cx="25" cy="35" r="12"/>
+        <circle cx="95" cy="35" r="12"/>
+        <path d="M27 82c0-21 14-35 33-35s33 14 33 35z"/>
+        <path d="M0 78c0-15 10-26 25-26 7 0 13 3 18 8-8 7-12 16-13 22H0z"/>
+        <path d="M120 78c0-15-10-26-25-26-7 0-13 3-18 8 8 7 12 16 13 22h30z"/>
+      </svg>
+    </div>
+
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="admin-filter-card">
+
+    <!-- Search -->
+    <div class="filter-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2">
+        <circle cx="11" cy="11" r="7"/>
+        <path d="m16 16 4 4"/>
+      </svg>
 
       <input
         type="text"
         [(ngModel)]="search"
         (keyup.enter)="applyFilters()"
         placeholder="Search name or email..."
-        class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500">
+      />
+    </div>
 
-      <select
-        [(ngModel)]="selectedStatus"
-        class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500">
+    <!-- Organization Filter -->
+    <select
+      class="admin-select"
+      [(ngModel)]="selectedOrganization"
+      [disabled]="isLoadingOrganizations"
+      aria-label="Filter by organization">
 
-        <option value="">All Statuses</option>
-        <option value="ACTIVE">Active</option>
-        <option value="INACTIVE">Inactive</option>
-        <option value="SUSPENDED">Suspended</option>
-      </select>
+      <option value="">All Organizations</option>
 
-      <div class="flex gap-2">
-        <button
-          (click)="applyFilters()"
-          class="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-          Search
-        </button>
+      <option
+        *ngFor="let organization of organizations"
+        [value]="organization.id">
 
-        <button
-          (click)="clearFilters()"
-          class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
-          Clear
-        </button>
-      </div>
+        {{ organization.name }}
+
+      </option>
+
+    </select>
+
+    <!-- Status Filter -->
+    <select
+      class="admin-select"
+      [(ngModel)]="selectedStatus"
+      aria-label="Filter by status">
+
+      <option value="">All Statuses</option>
+      <option value="ACTIVE">Active</option>
+      <option value="INACTIVE">Inactive</option>
+      <option value="SUSPENDED">Suspended</option>
+
+    </select>
+
+    <!-- Filter Actions -->
+    <div class="filter-actions">
+
+      <button class="search-btn" (click)="applyFilters()">
+        <span>⌕</span>
+        Search
+      </button>
+
+      <button class="reset-btn" (click)="clearFilters()">
+        <span>↻</span>
+        Reset
+      </button>
 
     </div>
 
-    <div *ngIf="isLoading" class="p-12 text-center text-slate-500">
+  </div>
+
+  <!-- Administrators Table -->
+  <div class="admin-table-card">
+
+    <div class="table-heading">
+      <h2>Administrators</h2>
+      <span>{{ total }} records</span>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="table-loading">
+      <div class="loading-spinner"></div>
       Loading administrators...
     </div>
 
+    <!-- Empty State -->
     <div
       *ngIf="!isLoading && admins.length === 0"
-      class="p-12 text-center">
+      class="empty-state">
 
-      <p class="font-semibold text-slate-700">
-        No administrators found.
-      </p>
+      <div class="empty-icon">♙</div>
+      <h3>No administrators found</h3>
+      <p>Create a new administrator or change your filters.</p>
 
-      <p class="mt-1 text-sm text-slate-500">
-        Create a new administrator or change your filters.
-      </p>
     </div>
 
-    <!-- Admin table -->
+    <!-- Table -->
     <div
       *ngIf="!isLoading && admins.length > 0"
-      class="overflow-x-auto">
+      class="table-scroll">
 
-      <table class="w-full min-w-[950px] text-left text-sm">
+      <table class="admin-table">
 
-        <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+        <thead>
           <tr>
-            <th class="px-5 py-4">Administrator</th>
-            <th class="px-5 py-4">Email</th>
-            <th class="px-5 py-4">Phone</th>
-            <th class="px-5 py-4">Organization</th>
-            <th class="px-5 py-4">Status</th>
-            <th class="px-5 py-4">Created</th>
-            <th class="px-5 py-4">Actions</th>
+            <th>Administrator</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Organization</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
           </tr>
         </thead>
 
-        <tbody class="divide-y divide-slate-100">
+        <tbody>
 
-          <tr
-            *ngFor="let admin of admins"
-            class="hover:bg-slate-50">
+          <tr *ngFor="let admin of admins">
 
-            <td class="px-5 py-4 font-semibold text-slate-800">
-              {{ getAdminName(admin) }}
+            <!-- Administrator -->
+            <td>
+              <div class="admin-user">
+
+                <div class="admin-avatar">
+                  {{ getAdminName(admin).charAt(0).toUpperCase() }}
+                </div>
+
+                <div class="admin-user-info">
+                  <strong>{{ getAdminName(admin) }}</strong>
+
+                  <span>
+                    {{ admin.adminProfile?.designation || 'Administrator' }}
+                  </span>
+                </div>
+
+              </div>
             </td>
 
-            <td class="px-5 py-4 text-slate-600">
-              {{ admin.email }}
+            <!-- Email -->
+            <td>
+              <div class="table-contact">
+                {{ admin.email }}
+              </div>
             </td>
 
-            <td class="px-5 py-4 text-slate-600">
-              {{ admin.adminProfile?.phone || '—' }}
+            <!-- Phone -->
+            <td>
+              <div class="table-contact">
+                {{ admin.adminProfile?.phone || '—' }}
+              </div>
             </td>
 
-            <td class="px-5 py-4 text-slate-600">
-              {{ admin.organization?.name || 'Unassigned' }}
+            <!-- Organization -->
+            <td>
+              <div class="table-organization">
+                <strong>
+                  {{ admin.organization?.name || 'Unassigned' }}
+                </strong>
+              </div>
             </td>
 
-            <td class="px-5 py-4">
+            <!-- Status -->
+            <td>
               <span
-                class="rounded-full px-3 py-1 text-xs font-semibold"
+                class="status-badge"
                 [ngClass]="statusClass(admin.status)">
+
+                <span class="status-dot"></span>
                 {{ admin.status }}
+
               </span>
             </td>
 
-            <td class="px-5 py-4 text-slate-600">
-              {{ admin.createdAt | date:'dd MMM yyyy' }}
+            <!-- Created -->
+            <td>
+              <div class="created-date">
+                {{ admin.createdAt | date:'dd MMM yyyy' }}
+              </div>
             </td>
 
-            <td class="px-5 py-4">
-              <div class="flex items-center gap-3">
+            <!-- Actions -->
+            <td>
+              <div class="admin-actions">
 
+                <!-- Edit -->
                 <button
-                  (click)="openEditModal(admin)"
-                  class="font-semibold text-blue-600 hover:text-blue-800">
-                  Edit
+                  class="action-btn edit-btn"
+                  title="Edit administrator"
+                  aria-label="Edit administrator"
+                  (click)="openEditModal(admin)">
+
+                  <svg viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2">
+                    <path d="M12 20h9"/>
+                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/>
+                  </svg>
+
                 </button>
 
+                <!-- Deactivate -->
                 <button
                   *ngIf="admin.status === 'ACTIVE'"
-                  (click)="deactivateAdmin(admin)"
-                  class="font-semibold text-red-600 hover:text-red-800">
-                  Deactivate
+                  class="action-btn deactivate-btn"
+                  title="Deactivate administrator"
+                  (click)="deactivateAdmin(admin)">
+
+                  <svg viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="9"/>
+                    <path d="m5.6 5.6 12.8 12.8"/>
+                  </svg>
+
+                  <span>Deactivate</span>
+
                 </button>
 
+                <!-- Reactivate -->
                 <button
                   *ngIf="admin.status !== 'ACTIVE'"
-                  (click)="reactivateAdmin(admin)"
-                  class="font-semibold text-green-600 hover:text-green-800">
-                  Reactivate
+                  class="action-btn reactivate-btn"
+                  title="Reactivate administrator"
+                  (click)="reactivateAdmin(admin)">
+
+                  <svg viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2">
+                    <path d="M20 7v5h-5"/>
+                    <path d="M4 17v-5h5"/>
+                    <path d="M5.5 9a7 7 0 0 1 11.9-2L20 12"/>
+                    <path d="M4 12l2.6 5a7 7 0 0 0 11.9-2"/>
+                  </svg>
+
+                  <span>Reactivate</span>
+
                 </button>
 
               </div>
@@ -165,63 +296,69 @@
           </tr>
 
         </tbody>
+
       </table>
+
     </div>
 
     <!-- Pagination -->
     <div
       *ngIf="!isLoading && totalPages > 0"
-      class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-5 py-4">
+      class="admin-pagination">
 
-      <p class="text-sm text-slate-500">
-        Page {{ page }} of {{ totalPages }} · {{ total }} administrators
+      <p>
+        Page {{ page }} of {{ totalPages }}
+        · {{ total }} administrators
       </p>
 
-      <div class="flex gap-2">
+      <div class="pagination-buttons">
 
         <button
           (click)="changePage(page - 1)"
-          [disabled]="page === 1"
-          class="rounded-lg border border-slate-300 px-4 py-2 text-sm disabled:opacity-40">
+          [disabled]="page === 1">
           Previous
         </button>
 
         <button
           (click)="changePage(page + 1)"
-          [disabled]="page >= totalPages"
-          class="rounded-lg border border-slate-300 px-4 py-2 text-sm disabled:opacity-40">
+          [disabled]="page >= totalPages">
           Next
         </button>
 
       </div>
+
     </div>
 
   </div>
+
 </div>
+
 
 <!-- Create / Edit Admin Modal -->
 <div
   *ngIf="showModal"
-  class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 p-4">
+  class="modal-overlay">
 
-  <div class="my-auto max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-xl">
+  <div class="admin-modal">
 
-    <div class="sticky top-0 flex items-center justify-between border-b border-slate-200 bg-white p-5">
+    <div class="modal-header">
 
       <div>
-        <h2 class="text-xl font-bold text-slate-800">
+        <h2>
           {{ isEditMode ? 'Edit Administrator' : 'Create Administrator' }}
         </h2>
 
-        <p class="mt-1 text-sm text-slate-500">
-          {{ isEditMode ? 'Update administrator information.' : 'Create a new administrator account.' }}
+        <p>
+          {{ isEditMode
+            ? 'Update administrator information.'
+            : 'Create a new administrator account.' }}
         </p>
       </div>
 
       <button
+        class="modal-close"
         (click)="closeModal()"
-        [disabled]="isSaving"
-        class="text-2xl text-slate-400 hover:text-slate-700">
+        [disabled]="isSaving">
         ×
       </button>
 
@@ -230,14 +367,12 @@
     <form
       (ngSubmit)="submitForm()"
       #adminForm="ngForm"
-      class="space-y-4 p-5">
+      class="admin-form">
 
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div class="form-grid">
 
-        <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">
-            First Name *
-          </label>
+        <div class="form-group">
+          <label>First Name *</label>
 
           <input
             type="text"
@@ -246,13 +381,11 @@
             required
             minlength="2"
             maxlength="100"
-            class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500">
+            placeholder="Enter first name"/>
         </div>
 
-        <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">
-            Last Name *
-          </label>
+        <div class="form-group">
+          <label>Last Name *</label>
 
           <input
             type="text"
@@ -261,15 +394,13 @@
             required
             minlength="2"
             maxlength="100"
-            class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500">
+            placeholder="Enter last name"/>
         </div>
 
       </div>
 
-      <div>
-        <label class="mb-1 block text-sm font-medium text-slate-700">
-          Email Address *
-        </label>
+      <div class="form-group">
+        <label>Email Address *</label>
 
         <input
           type="email"
@@ -277,70 +408,55 @@
           [(ngModel)]="form.email"
           required
           email
-          class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500">
+          placeholder="Enter email address"/>
       </div>
 
-      <div>
-        <label class="mb-1 block text-sm font-medium text-slate-700">
-          Phone Number
-        </label>
+      <div class="form-group">
+        <label>Phone Number</label>
 
         <input
           type="tel"
           name="phone"
           [(ngModel)]="form.phone"
           maxlength="20"
-          placeholder="Enter phone number"
-          class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500">
+          placeholder="Enter phone number"/>
       </div>
 
-      <!-- Organization dropdown -->
-      <div>
-
-        <label class="mb-1 block text-sm font-medium text-slate-700">
-          Organization *
-        </label>
+      <div class="form-group">
+        <label>Organization *</label>
 
         <select
           name="organizationId"
           [(ngModel)]="form.organizationId"
           required
-          [disabled]="isLoadingOrganizations || isSaving || organizations.length === 0"
-          class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 disabled:bg-slate-100">
+          [disabled]="isLoadingOrganizations || isSaving || organizations.length === 0">
 
           <option value="">
-            {{ isLoadingOrganizations ? 'Loading organizations...' : 'Select organization' }}
+            {{ isLoadingOrganizations
+              ? 'Loading organizations...'
+              : 'Select organization' }}
           </option>
 
           <option
-            *ngFor="let organization of organizations"
+            *ngFor="let organization of activeOrganizations"
             [value]="organization.id">
+
             {{ organization.name }}
+
           </option>
 
         </select>
 
-        <p
-          *ngIf="isEditMode"
-          class="mt-1 text-xs text-slate-500">
-          You can change the administrator's organization here.
-        </p>
-
-        <p
-          *ngIf="organizations.length === 0 && !isLoadingOrganizations"
-          class="mt-1 text-xs text-red-600">
+        <small *ngIf="activeOrganizations.length === 0 && !isLoadingOrganizations">
           No active organizations available. Create an organization first.
-        </p>
+        </small>
 
       </div>
 
-      <!-- Password fields only during creation -->
       <ng-container *ngIf="!isEditMode">
 
-        <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">
-            Password *
-          </label>
+        <div class="form-group">
+          <label>Password *</label>
 
           <input
             type="password"
@@ -349,18 +465,13 @@
             required
             minlength="12"
             maxlength="128"
-            placeholder="Minimum 12 characters"
-            class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500">
+            placeholder="Minimum 12 characters"/>
 
-          <p class="mt-1 text-xs text-slate-500">
-            Password must contain 12–128 characters.
-          </p>
+          <small>Password must contain 12–128 characters.</small>
         </div>
 
-        <div>
-          <label class="mb-1 block text-sm font-medium text-slate-700">
-            Confirm Password *
-          </label>
+        <div class="form-group">
+          <label>Confirm Password *</label>
 
           <input
             type="password"
@@ -369,39 +480,40 @@
             required
             minlength="12"
             maxlength="128"
-            placeholder="Re-enter password"
-            class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500">
+            placeholder="Re-enter password"/>
         </div>
 
       </ng-container>
 
-      <div
-        *ngIf="errorMessage"
-        class="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+      <div *ngIf="errorMessage" class="modal-error">
         {{ errorMessage }}
       </div>
 
-      <div class="flex justify-end gap-3 border-t border-slate-100 pt-4">
+      <div class="modal-footer">
 
         <button
           type="button"
+          class="modal-cancel"
           (click)="closeModal()"
-          [disabled]="isSaving"
-          class="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+          [disabled]="isSaving">
           Cancel
         </button>
 
         <button
           type="submit"
-          [disabled]="isSaving || adminForm.invalid || !form.organizationId || organizations.length === 0"
-          class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+          class="modal-submit"
+          [disabled]="isSaving || adminForm.invalid || !form.organizationId || activeOrganizations.length === 0">
 
-          {{ isSaving ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Admin') }}
+          {{ isSaving
+            ? 'Saving...'
+            : (isEditMode ? 'Save Changes' : 'Create Admin') }}
 
         </button>
 
       </div>
 
     </form>
+
   </div>
+
 </div>

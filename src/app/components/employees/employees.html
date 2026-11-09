@@ -1,287 +1,537 @@
 
-<div class="min-h-screen bg-slate-50 p-4 md:p-6">
+<div class="min-h-screen bg-[#f3f7ff]">
 
-  <!-- Header -->
-  <div class="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+  <!-- Employee Page Header -->
+  <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+
     <div>
-      <h1 class="text-2xl font-bold text-slate-800">Employee Management</h1>
-      <p class="mt-1 text-sm text-slate-500">
+      <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">
+        Employee
+        <span class="text-blue-600">Management</span>
+      </h1>
+
+      <p class="mt-2 text-base text-slate-600">
         Manage employees and their information.
       </p>
     </div>
 
-    <button
-      (click)="openAddModal()"
-      class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700">
-      + Add Employee
-    </button>
+    <!-- Add Employee: ADMIN only -->
+    @if (!isSuperAdmin) {
+      <button
+        type="button"
+        (click)="openAddModal()"
+        class="rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700">
+        + Add Employee
+      </button>
+    }
+
   </div>
 
-  <!-- Notifications -->
-  <div *ngIf="successMessage"
-    class="mb-5 flex justify-between rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+  <!-- Success Message -->
+  <div
+    *ngIf="successMessage"
+    class="mb-5 flex justify-between rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700">
+
     {{ successMessage }}
-    <button (click)="successMessage = ''">✕</button>
+
+    <button
+      type="button"
+      (click)="successMessage = ''">
+      ✕
+    </button>
+
   </div>
 
-  <div *ngIf="errorMessage && !showAddModal"
-    class="mb-5 flex justify-between rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+  <!-- Error Message -->
+  <div
+    *ngIf="errorMessage && !showAddModal"
+    class="mb-5 flex justify-between rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+
     {{ errorMessage }}
-    <button (click)="errorMessage = ''">✕</button>
+
+    <button
+      type="button"
+      (click)="errorMessage = ''">
+      ✕
+    </button>
+
   </div>
 
   <!-- Statistics -->
-  <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div class="flex items-center gap-4">
-        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl text-blue-600">
-          <span>♙</span>
+  <div
+    class="mb-6 grid grid-cols-1 gap-5">
+
+    <!-- Total Employees -->
+    <div class="relative overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 via-blue-50 to-indigo-100 p-7 shadow-sm">
+
+      <div class="relative z-10 flex items-center gap-5">
+
+        <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-100 text-3xl text-blue-600">
+          ♙
         </div>
+
         <div>
-          <p class="text-sm text-slate-500">Total Employees</p>
-          <h2 class="mt-1 text-2xl font-bold text-slate-800">{{ totalEmployees }}</h2>
+
+          <p class="text-base font-medium text-slate-700">
+            Total Employees
+          </p>
+
+          <h2 class="mt-1 text-4xl font-extrabold text-slate-900">
+            {{ totalEmployees }}
+          </h2>
+
         </div>
+
       </div>
+
+      <!-- Decorative Icon -->
+      <div class="pointer-events-none absolute -bottom-5 right-8 text-8xl text-blue-200/70">
+        ♟
+      </div>
+
     </div>
 
-    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div class="flex items-center gap-4">
-        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-xl text-indigo-600">
-          <span>▤</span>
-        </div>
-        <div>
-          <p class="text-sm text-slate-500">Current Page</p>
-          <h2 class="mt-1 text-2xl font-bold text-slate-800">
-            {{ currentPage }} / {{ totalPages || 1 }}
-          </h2>
-        </div>
-      </div>
-    </div>
+
   </div>
 
   <!-- Filters -->
-  <div class="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-    <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+  <div class="mb-6 rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
 
-      <input
-        type="text"
-        [(ngModel)]="searchTerm"
-        (keyup.enter)="applyFilters()"
-        placeholder="Search employees..."
-        class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 xl:col-span-2"
-      />
+    <div class="grid grid-cols-1 items-center gap-4 lg:grid-cols-12">
 
-      <select
-        [(ngModel)]="departmentFilter"
-        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500">
-        <option value="">All Departments</option>
-        <option *ngFor="let department of departments" [value]="department.id">
-          {{ department.name }}
-        </option>
-      </select>
+      <!-- Search: ALL ROLES -->
+      <div class="lg:col-span-5">
 
-      <select
-        [(ngModel)]="statusFilter"
-        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500">
-        <option value="">All Statuses</option>
-        <option value="ACTIVE">Active</option>
-        <option value="INACTIVE">Inactive</option>
-      </select>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="applyFilters()"
+          placeholder="Search employees..."
+          class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        />
 
-      <div class="flex gap-2">
-        <button
-          (click)="applyFilters()"
-          class="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-          Apply
-        </button>
-
-        <button
-          (click)="resetFilters()"
-          class="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
-          Reset
-        </button>
       </div>
+
+      <!-- Organization: SUPER ADMIN -->
+      @if (isSuperAdmin) {
+
+        <div class="lg:col-span-3">
+
+          <select
+            [(ngModel)]="organizationFilter"
+            [disabled]="loadingOrganizations"
+            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-slate-100">
+
+            <option value="">All Organizations</option>
+
+            <option
+              *ngFor="let organization of organizations"
+              [value]="organization.id">
+
+              {{ organization.name }}
+
+            </option>
+
+          </select>
+
+        </div>
+
+      } @else {
+
+        <!-- Department: ADMIN -->
+        <div class="lg:col-span-3">
+
+          <select
+            [(ngModel)]="departmentFilter"
+            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+
+            <option value="">All Departments</option>
+
+            <option
+              *ngFor="let department of departments"
+              [value]="department.id">
+
+              {{ department.name }}
+
+            </option>
+
+          </select>
+
+        </div>
+
+      }
+
+      <!-- Status -->
+      <div class="lg:col-span-2">
+
+        <select
+          [(ngModel)]="statusFilter"
+          class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+
+          <option value="">All Statuses</option>
+          <option value="ACTIVE">Active</option>
+          <option value="INACTIVE">Inactive</option>
+
+        </select>
+
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex gap-2 lg:col-span-2">
+
+        <button
+          type="button"
+          (click)="applyFilters()"
+          class="flex-1 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700">
+
+          Apply
+
+        </button>
+
+        <button
+          type="button"
+          (click)="resetFilters()"
+          class="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+
+          Reset
+
+        </button>
+
+      </div>
+
     </div>
+
   </div>
 
   <!-- Employee Table -->
-  <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+  <div class="overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-sm">
 
-    <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-      <h2 class="font-semibold text-slate-800">Employees</h2>
-      <span class="text-sm text-slate-500">{{ totalEmployees }} records</span>
+    <!-- Table Header -->
+    <div class="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+
+      <h2 class="text-xl font-bold text-slate-900">
+        Employees
+      </h2>
+
+      <span class="text-sm font-medium text-slate-500">
+        {{ totalEmployees }} records
+      </span>
+
     </div>
 
     <!-- Loading -->
-    <div *ngIf="loading" class="flex justify-center py-16">
-      <div class="h-9 w-9 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"></div>
+    <div
+      *ngIf="loading"
+      class="flex justify-center py-16">
+
+      <div class="h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"></div>
+
     </div>
 
     <!-- Empty State -->
-    <div *ngIf="!loading && employees.length === 0"
-      class="py-16 text-center">
-      <div class="mb-3 text-4xl text-slate-300">♙</div>
-      <h3 class="font-semibold text-slate-700">No employees found</h3>
-      <p class="mt-1 text-sm text-slate-500">
-        Try changing your filters or add a new employee.
+    <div
+      *ngIf="!loading && employees.length === 0"
+      class="py-20 text-center">
+
+      <div class="mb-4 text-5xl text-blue-200">
+        ♙
+      </div>
+
+      <h3 class="text-lg font-bold text-slate-800">
+        No Employees Found
+      </h3>
+
+      <p class="mt-2 text-sm text-slate-500">
+        Try changing your search or filter criteria.
       </p>
+
     </div>
 
     <!-- Table -->
-    <div *ngIf="!loading && employees.length > 0" class="overflow-x-auto">
+    <div
+      *ngIf="!loading && employees.length > 0"
+      class="overflow-x-auto">
+
       <table class="w-full min-w-[1250px] text-left text-sm">
 
-        <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+        <!-- Table Head -->
+        <thead class="bg-gradient-to-r from-blue-50 to-slate-50 text-xs uppercase tracking-wide text-slate-600">
+
           <tr>
-            <th class="px-5 py-4 font-semibold">Employee</th>
-            <th class="px-5 py-4 font-semibold">Employee Code</th>
-            <th class="px-5 py-4 font-semibold">Department</th>
-            <th class="px-5 py-4 font-semibold">Shift</th>
-            <th class="px-5 py-4 font-semibold">Designation</th>
-            <th class="px-5 py-4 font-semibold">Phone</th>
-            <th class="px-5 py-4 font-semibold">Assigned Work Location</th>
-            <th class="px-5 py-4 font-semibold">Status</th>
-            <th class="px-5 py-4 text-right font-semibold">Actions</th>
+
+            <th class="px-5 py-5 font-bold">
+              Employee
+            </th>
+
+            <th class="px-5 py-5 font-bold">
+              Employee Code
+            </th>
+
+            @if (isSuperAdmin) {
+
+              <th class="px-5 py-5 font-bold">
+                Organization
+              </th>
+
+            } @else {
+
+              <th class="px-5 py-5 font-bold">
+                Department
+              </th>
+
+            }
+
+            <th class="px-5 py-5 font-bold">
+              Shift
+            </th>
+
+            <th class="px-5 py-5 font-bold">
+              Designation
+            </th>
+
+            <th class="px-5 py-5 font-bold">
+              Phone
+            </th>
+
+            <th class="px-5 py-5 font-bold">
+              Assigned Work Location
+            </th>
+
+            <th class="px-5 py-5 font-bold">
+              Status
+            </th>
+
+            @if (!isSuperAdmin) {
+
+              <th class="px-5 py-5 text-right font-bold">
+                Actions
+              </th>
+
+            }
+
           </tr>
+
         </thead>
 
+        <!-- Table Body -->
         <tbody class="divide-y divide-slate-100">
-          <tr *ngFor="let employee of employees"
-            class="transition hover:bg-slate-50">
 
-            <td class="px-5 py-4">
+          <tr
+            *ngFor="let employee of employees"
+            class="transition hover:bg-blue-50/40">
+
+            <!-- Employee -->
+            <td class="px-5 py-5">
+
               <div class="flex items-center gap-3">
+
                 <img
                   *ngIf="employee.employeeProfile.avatarUrl"
                   [src]="employee.employeeProfile.avatarUrl"
                   [alt]="getFullName(employee)"
-                  class="h-10 w-10 rounded-full object-cover"
+                  class="h-12 w-12 rounded-full object-cover ring-2 ring-blue-100"
                 />
 
-                <div *ngIf="!employee.employeeProfile.avatarUrl"
-                  class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-700">
+                <div
+                  *ngIf="!employee.employeeProfile.avatarUrl"
+                  class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700">
+
                   {{ getInitials(employee) }}
+
                 </div>
 
                 <div>
-                  <p class="font-semibold text-slate-800">
+
+                  <p class="font-bold text-slate-900">
                     {{ getFullName(employee) }}
                   </p>
-                  <p class="mt-0.5 text-xs text-slate-500">
+
+                  <p class="mt-1 text-xs text-slate-500">
                     {{ employee.email }}
                   </p>
+
                 </div>
+
               </div>
+
             </td>
 
-            <td class="px-5 py-4 text-slate-600">
+            <!-- Employee Code -->
+            <td class="px-5 py-5 text-slate-600">
               {{ employee.employeeProfile.employeeCode }}
             </td>
 
-            <td class="px-5 py-4 text-slate-600">
-              {{ getDepartmentName(employee) }}
+            <!-- Organization / Department -->
+            <td class="px-5 py-5">
+
+              @if (isSuperAdmin) {
+
+                <span class="font-semibold text-slate-800">
+                  {{ employee.organization?.name || 'Not assigned' }}
+                </span>
+
+              } @else {
+
+                <span class="text-slate-600">
+                  {{ getDepartmentName(employee) }}
+                </span>
+
+              }
+
             </td>
 
-            <td class="px-5 py-4 text-slate-600">
+            <!-- Shift -->
+            <td class="px-5 py-5 text-slate-600">
               {{ getShiftName(employee) }}
             </td>
 
-            <td class="px-5 py-4 text-slate-600">
+            <!-- Designation -->
+            <td class="px-5 py-5 text-slate-600">
               {{ employee.employeeProfile.designation || '—' }}
             </td>
 
-            <td class="px-5 py-4 text-slate-600">
+            <!-- Phone -->
+            <td class="px-5 py-5 text-slate-600">
               {{ employee.employeeProfile.phone || '—' }}
             </td>
 
-            <td class="px-5 py-4">
-              <ng-container *ngIf="getEffectiveWorkLocation(employee) as assignment; else noWorkLocation">
-                <div class="font-medium text-slate-800">
+            <!-- Work Location -->
+            <td class="px-5 py-5">
+
+              <ng-container
+                *ngIf="getEffectiveWorkLocation(employee) as assignment; else noWorkLocation">
+
+                <div class="font-semibold text-slate-900">
                   {{ assignment.location.name }}
                 </div>
-                <div class="mt-1 flex flex-wrap items-center gap-2">
-                  <span class="rounded-full px-2 py-0.5 text-xs font-semibold"
+
+                <div class="mt-2 flex flex-wrap items-center gap-2">
+
+                  <span
+                    class="rounded-full px-3 py-1 text-xs font-bold"
                     [ngClass]="assignment.assignmentType === 'TEMPORARY'
                       ? 'bg-amber-100 text-amber-700'
                       : 'bg-blue-100 text-blue-700'">
+
                     {{ assignment.assignmentType }}
+
                   </span>
+
                   <span class="text-xs text-slate-500">
                     {{ assignment.location.type }}
                   </span>
+
                 </div>
-                <p *ngIf="assignment.assignmentType === 'TEMPORARY'"
-                  class="mt-1 max-w-xs text-xs text-slate-500">
+
+                <p
+                  *ngIf="assignment.assignmentType === 'TEMPORARY'"
+                  class="mt-1 text-xs text-slate-500">
+
                   Until {{ assignment.endAt | date:'medium' }}
+
                 </p>
+
               </ng-container>
+
               <ng-template #noWorkLocation>
-                <span class="text-slate-400">Not assigned</span>
+
+                <span class="text-slate-400">
+                  Not assigned
+                </span>
+
               </ng-template>
+
             </td>
 
-            <td class="px-5 py-4">
+            <!-- Status -->
+            <td class="px-5 py-5">
+
               <span
-                class="rounded-full px-3 py-1 text-xs font-semibold"
+                class="rounded-full px-3 py-1.5 text-xs font-bold"
                 [ngClass]="employee.status === 'ACTIVE'
                   ? 'bg-green-100 text-green-700'
                   : 'bg-red-100 text-red-700'">
+
                 {{ employee.status }}
+
               </span>
+
             </td>
 
-            <td class="px-5 py-4">
-              <div class="flex justify-end">
+            <!-- Actions: ADMIN only -->
+            @if (!isSuperAdmin) {
+
+              <td class="px-5 py-5">
+
                 <div class="flex justify-end gap-2">
-                  <button
-                    type="button"
-                    (click)="openEditModal(employee)"
-                    class="rounded-lg border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-50">
-                    Edit
+
+                  <button type="button" (click)="openEditModal(employee)" title="Edit employee" aria-label="Edit employee"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-blue-200 bg-white text-blue-700 transition hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/></svg>
                   </button>
-                  <button
-                    type="button"
-                    (click)="openLocationModal(employee)"
-                    class="rounded-lg border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-50">
-                    Assign Location
+
+                  <button type="button" (click)="openLocationModal(employee)" title="Assign location" aria-label="Assign location"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-indigo-200 bg-white text-indigo-700 transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
                   </button>
+
+                  <button type="button" (click)="openDeleteModal(employee)" title="Deactivate employee" aria-label="Deactivate employee"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-white text-red-700 transition hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 10v6M14 10v6"/></svg>
+                  </button>
+
                 </div>
-              </div>
-            </td>
+
+              </td>
+
+            }
 
           </tr>
+
         </tbody>
+
       </table>
+
     </div>
 
     <!-- Pagination -->
-    <div *ngIf="!loading && totalPages > 0"
-      class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-5 py-4">
+    <div
+      *ngIf="!loading && totalPages > 0"
+      class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-6 py-5">
 
       <p class="text-sm text-slate-500">
         Page {{ currentPage }} of {{ totalPages }}
       </p>
 
       <div class="flex gap-2">
+
         <button
+          type="button"
           (click)="changePage(currentPage - 1)"
           [disabled]="currentPage === 1"
-          class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">
+          class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 disabled:opacity-40">
+
           Previous
+
         </button>
 
         <button
+          type="button"
           (click)="changePage(currentPage + 1)"
           [disabled]="currentPage >= totalPages"
-          class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">
+          class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 disabled:opacity-40">
+
           Next
+
         </button>
+
       </div>
+
     </div>
 
   </div>
-</div>
 
+</div>
 
 <!-- ADD EMPLOYEE MODAL -->
 <div *ngIf="showAddModal"
@@ -646,6 +896,27 @@
         class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">
         {{ assigningLocation ? 'Assigning...' : 'Assign Location' }}
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin only: custom deactivate employee confirmation -->
+<div *ngIf="!isSuperAdmin && showDeleteModal" class="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/60 p-4" role="presentation">
+  <div role="alertdialog" aria-modal="true" aria-labelledby="deactivate-employee-title" aria-describedby="deactivate-employee-description" class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
+    <div class="px-6 pt-6 pb-4">
+      <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600">
+        <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 10v6M14 10v6"/></svg>
+      </div>
+      <h2 id="deactivate-employee-title" class="text-xl font-bold text-slate-900">Deactivate employee?</h2>
+      <p id="deactivate-employee-description" class="mt-2 text-sm leading-6 text-slate-600">
+        Are you sure you want to deactivate <span class="font-semibold text-slate-900">{{ employeeToDelete ? getFullName(employeeToDelete) : '' }}</span>?
+        Their attendance history should remain preserved. They will no longer be active.
+      </p>
+      <div *ngIf="deleteErrorMessage" role="alert" class="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ deleteErrorMessage }}</div>
+    </div>
+    <div class="flex justify-end gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4">
+      <button type="button" (click)="closeDeleteModal()" [disabled]="deletingEmployee" class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50">Cancel</button>
+      <button type="button" (click)="confirmDeleteEmployee()" [disabled]="deletingEmployee" class="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50">{{ deletingEmployee ? 'Deactivating...' : 'Deactivate Employee' }}</button>
     </div>
   </div>
 </div>

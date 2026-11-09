@@ -1,5 +1,194 @@
+<!-- =============================================================
+     EMPLOYEE ATTENDANCE — VISUAL REDESIGN ONLY
+     All punch-in/out, GPS, late-arrival and approval methods are reused.
+     The existing Admin / Super Admin template remains below unchanged.
+============================================================= -->
+<section *ngIf="isEmployee" class="ea-screen">
+  <div class="ea-page-heading">
+    <h1><span>My</span> <span class="ea-blue-text">Attendance</span></h1>
+    <p>Mark your attendance and track today's activity.</p>
+  </div>
 
-<div class="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
+  <article class="ea-today-card" aria-labelledby="ea-today-title">
+    <div class="ea-card-main">
+      <div class="ea-left-content">
+        <div class="ea-card-heading">
+          <div class="ea-feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="5" width="18" height="16" rx="2"/>
+              <path d="M7 3v4M17 3v4M3 10h18"/>
+              <path d="m9 15 2 2 4-4"/>
+            </svg>
+          </div>
+          <div class="ea-title-group">
+            <h2 id="ea-today-title">Today's Attendance</h2>
+            <p>{{ today | date:'EEEE, dd MMMM yyyy' }}</p>
+            <div class="ea-badges" aria-live="polite">
+              <span *ngIf="activeSession && isPunchOutAllowed" class="ea-badge ea-badge-working">
+                <span class="ea-dot"></span> Currently Working
+              </span>
+              <span *ngIf="pendingApproval" class="ea-badge ea-badge-pending">
+                <span class="ea-dot"></span> Approval Pending
+              </span>
+              <span *ngIf="rejectedSession && !pendingApproval" class="ea-badge ea-badge-rejected">
+                <span class="ea-dot"></span> Approval Rejected
+              </span>
+              <span *ngIf="isAttendanceCompletedToday" class="ea-badge ea-badge-completed">
+                <span class="ea-dot"></span> Completed Today
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ea-metrics" aria-label="Today's attendance summary">
+          <div class="ea-metric">
+            <div class="ea-metric-icon ea-icon-blue" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+              </svg>
+            </div>
+            <div class="ea-metric-info">
+              <span class="ea-metric-label">Punch In</span>
+              <strong>{{ todayPunchIn ? (todayPunchIn | date:'hh:mm a') : '--:--' }}</strong>
+            </div>
+          </div>
+          <div class="ea-metric">
+            <div class="ea-metric-icon ea-icon-violet" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6"/>
+              </svg>
+            </div>
+            <div class="ea-metric-info">
+              <span class="ea-metric-label">Punch Out</span>
+              <strong>{{ todayPunchOut ? (todayPunchOut | date:'hh:mm a') : '--:--' }}</strong>
+            </div>
+          </div>
+          <div class="ea-metric">
+            <div class="ea-metric-icon ea-icon-blue" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V5a3 3 0 0 1 6 0v2M4 12h16"/>
+              </svg>
+            </div>
+            <div class="ea-metric-info">
+              <span class="ea-metric-label">Working Hours</span>
+              <strong class="ea-hours-value">{{ todayWorkingHours }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ea-action-panel">
+        <button
+          *ngIf="!activeSession && !isAttendanceCompletedToday && !rejectedSession"
+          type="button"
+          class="ea-punch-button"
+          (click)="punchIn()"
+          [disabled]="actionLoading || pendingApproval || !!rejectedSession || isPunchInUnavailable"
+          [attr.aria-busy]="actionLoading"
+          [attr.aria-describedby]="isPunchInUnavailable ? 'ea-punch-cutoff-message' : null">
+          <span class="ea-punch-button-row">
+            <svg *ngIf="!actionLoading" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5a1 1 0 0 1 1.53-.85l11 7.5a1 1 0 0 1 0 1.7l-11 7.5A1 1 0 0 1 7 19.5z"/></svg>
+            <span>{{ actionLoading ? 'Processing...' : (!punchInPolicyReady ? 'Checking Shift' : (isPunchInBeforeShift ? 'Shift Not Started' : (isPunchInCutoffReached ? 'Punch In Closed' : (showLateReason ? 'Submit Late Reason & Punch In' : 'Punch In')))) }}</span>
+          </span>
+          <span class="ea-button-subtitle">{{ !punchInPolicyReady ? 'Verifying your shift...' : (isPunchInBeforeShift ? 'Available at shift start' : (isPunchInCutoffReached ? 'Contact your Admin' : (actionLoading ? 'Verifying your location...' : 'Start your workday'))) }}</span>
+        </button>
+
+        <p *ngIf="isPunchInUnavailable && !activeSession && !isAttendanceCompletedToday"
+          id="ea-punch-cutoff-message" class="ea-cutoff-message" role="status">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 17h.01"/></svg>
+          {{ punchInStatusMessage }}
+        </p>
+
+        <button
+          *ngIf="activeSession && isPunchOutAllowed"
+          type="button"
+          class="ea-punch-button ea-punch-out"
+          (click)="punchOut()"
+          [disabled]="actionLoading"
+          [attr.aria-busy]="actionLoading">
+          <span class="ea-punch-button-row">
+            <svg *ngIf="!actionLoading" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="3"/></svg>
+            <span>{{ actionLoading ? 'Processing...' : 'Punch Out' }}</span>
+          </span>
+          <span class="ea-button-subtitle">{{ actionLoading ? 'Verifying your location...' : 'End your work session' }}</span>
+        </button>
+
+        <div *ngIf="isAttendanceCompletedToday && !activeSession" class="ea-punch-unavailable ea-punch-completed" role="status">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/><path d="m7.5 12 3 3 6-6"/>
+          </svg>
+          <strong>Attendance Completed</strong>
+          <span>You've punched in and out today. You can punch in again tomorrow.</span>
+        </div>
+
+        <div *ngIf="activeSession && !isPunchOutAllowed" class="ea-punch-unavailable" role="status">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l3 2"/></svg>
+          <strong>{{ pendingApproval ? 'Approval Pending' : (rejectedSession ? 'Approval Rejected' : 'Punch Out Unavailable') }}</strong>
+          <span>{{ pendingApproval ? 'Awaiting Admin review' : 'Contact your Admin' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ea-verification-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 2 4.5 5v6c0 5 3.2 8.8 7.5 11 4.3-2.2 7.5-6 7.5-11V5z"/><path d="m9 12 2 2 4-4"/>
+      </svg>
+      <div>
+        <strong>Location verification required</strong>
+        <p>Your GPS location and office network (when configured) are checked when you punch in or out.</p>
+        <span *ngIf="locationMessage" class="ea-capture-message">{{ locationMessage }}</span>
+      </div>
+    </div>
+
+    <!-- Existing late-arrival, approval, and API feedback preserved -->
+    <div *ngIf="showLateReason" class="ea-inline-alert ea-alert-warning">
+      <strong>Late arrival reason required</strong>
+      <p>Please provide a reason for your late arrival before submitting punch-in.</p>
+      <label class="ea-field-label" for="ea-late-reason">Reason</label>
+      <textarea id="ea-late-reason" [(ngModel)]="lateReason" rows="3" maxlength="500" placeholder="Enter your reason..."></textarea>
+      <span class="ea-character-count">{{ lateReason.length }}/500</span>
+    </div>
+
+    <div *ngIf="pendingApproval" class="ea-inline-alert ea-alert-warning" role="status">
+      <strong>Approval needed.</strong>
+      Your late-arrival request has been sent to Admin and is awaiting review. You cannot start working or punch out until it is approved.
+    </div>
+
+    <div *ngIf="rejectedSession" class="ea-inline-alert ea-alert-error" role="alert">
+      Your late-arrival request was rejected. Please contact your Admin before attempting another punch-in.
+      <span *ngIf="rejectedSession.rejectionReason">Admin's reason: {{ rejectedSession.rejectionReason }}</span>
+    </div>
+
+    <div *ngIf="actionMessage" class="ea-inline-alert ea-alert-success" role="status">{{ actionMessage }}</div>
+    <div *ngIf="errorMessage" class="ea-inline-alert ea-alert-error" role="alert">{{ errorMessage }}</div>
+  </article>
+
+  <!-- Employee-only custom popup for failed punch-in / punch-out API requests. -->
+  <div *ngIf="actionError" class="ea-error-backdrop" (click)="actionError = ''" (keydown.escape)="actionError = ''">
+    <section class="ea-error-dialog" role="alertdialog" aria-modal="true"
+      aria-labelledby="ea-error-title" aria-describedby="ea-error-description"
+      (click)="$event.stopPropagation()">
+      <div class="ea-error-dialog-header">
+        <span class="ea-error-dialog-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/><path d="M12 7v6"/><path d="M12 17h.01"/>
+          </svg>
+        </span>
+        <button type="button" class="ea-error-dialog-close" aria-label="Close error message"
+          (click)="actionError = ''">&times;</button>
+      </div>
+      <h2 id="ea-error-title">Unable to mark attendance</h2>
+      <p id="ea-error-description">{{ actionError }}</p>
+      <div class="ea-error-dialog-actions">
+        <button type="button" class="ea-error-dialog-ok" (click)="actionError = ''">Got it</button>
+      </div>
+    </section>
+  </div>
+</section>
+
+<!-- Admin and Super Admin attendance UI: unchanged existing markup -->
+
+<div *ngIf="isAdmin" class="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
 
   <!-- Page Header -->
   <div class="mb-6 flex flex-wrap items-center justify-between gap-4">

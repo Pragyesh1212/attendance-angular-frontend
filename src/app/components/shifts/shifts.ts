@@ -1,3 +1,4 @@
+import { FeedbackService } from '../../shared/feedback/feedback.service';
 
 import {
   Component,
@@ -24,6 +25,22 @@ import {
   templateUrl: './shifts.html'
 })
 export class Shifts implements OnInit {
+  private readonly uiFeedback = inject(FeedbackService);
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get errorMessage(): string { return ''; }
+  set errorMessage(value: string) {
+    if (value) this.uiFeedback.error(value);
+  }
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get successMessage(): string { return ''; }
+  set successMessage(value: string) {
+    if (value) this.uiFeedback.success(value);
+  }
+
 
   private shiftService = inject(ShiftService);
   private cdr = inject(ChangeDetectorRef);
@@ -44,8 +61,8 @@ export class Shifts implements OnInit {
 
   userRole = '';
 
-  errorMessage = '';
-  successMessage = '';
+  
+  
 
   formData: ShiftPayload = this.getEmptyForm();
 
@@ -83,7 +100,9 @@ export class Shifts implements OnInit {
       startTime: '09:00',
       endTime: '18:00',
       gracePeriodMinutes: 10,
+      // Compatibility: this stored field now represents Admin approval.
       lateReasonAfterMinutes: 15,
+      // Compatibility: this stored field now represents the hard punch-in cutoff.
       approvalRequiredAfterMinutes: 30
     };
   }
@@ -219,10 +238,13 @@ export class Shifts implements OnInit {
     };
 
     const gracePeriod = Number(this.formData.gracePeriodMinutes ?? 10);
-    const lateReason = parseOptionalMinutes(
+    // The two existing API fields are reused to avoid a schema migration.
+    // lateReasonAfterMinutes = Admin approval threshold
+    // approvalRequiredAfterMinutes = Punch-in hard cutoff
+    const approval = parseOptionalMinutes(
       this.formData.lateReasonAfterMinutes
     );
-    const approval = parseOptionalMinutes(
+    const cutoff = parseOptionalMinutes(
       this.formData.approvalRequiredAfterMinutes
     );
 
@@ -232,28 +254,44 @@ export class Shifts implements OnInit {
     }
 
     if (
-      lateReason !== null &&
-      (!Number.isInteger(lateReason) || lateReason < 0 || lateReason > 1440)
-    ) {
-      this.errorMessage = 'Late reason threshold must be a whole number between 0 and 1440.';
-      return;
-    }
-
-    if (
       approval !== null &&
       (!Number.isInteger(approval) || approval < 0 || approval > 1440)
     ) {
-      this.errorMessage = 'Approval threshold must be a whole number between 0 and 1440.';
+      this.errorMessage = 'Admin approval threshold must be a whole number between 0 and 1440.';
       return;
     }
 
     if (
-      lateReason !== null &&
+      cutoff !== null &&
+      (!Number.isInteger(cutoff) || cutoff < 0 || cutoff > 1440)
+    ) {
+      this.errorMessage = 'Punch-in cutoff must be a whole number between 0 and 1440.';
+      return;
+    }
+
+    if (
       approval !== null &&
-      approval <= lateReason
+      approval <= gracePeriod
+    ) {
+      this.errorMessage = 'Admin approval must start after the grace period.';
+      return;
+    }
+
+    if (
+      cutoff !== null &&
+      cutoff <= gracePeriod
+    ) {
+      this.errorMessage = 'Punch-in cutoff must be after the grace period.';
+      return;
+    }
+
+    if (
+      approval !== null &&
+      cutoff !== null &&
+      cutoff <= approval
     ) {
       this.errorMessage =
-        'Approval threshold must be greater than the late reason threshold.';
+        'Punch-in cutoff must be later than the Admin approval threshold.';
       return;
     }
 
@@ -262,8 +300,8 @@ export class Shifts implements OnInit {
       startTime: this.formData.startTime,
       endTime: this.formData.endTime,
       gracePeriodMinutes: gracePeriod,
-      lateReasonAfterMinutes: lateReason,
-      approvalRequiredAfterMinutes: approval
+      lateReasonAfterMinutes: approval,
+      approvalRequiredAfterMinutes: cutoff
     };
 
     this.saving = true;
@@ -300,15 +338,18 @@ export class Shifts implements OnInit {
     });
   }
 
-  toggleStatus(shift: Shift): void {
+  async toggleStatus(shift: Shift): Promise<void> {
     if (!this.canManageShifts) return;
 
     const newStatus: ShiftStatus =
       shift.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
 
-    const confirmed = window.confirm(
-      `Are you sure you want to ${newStatus === 'ACTIVE' ? 'activate' : 'deactivate'} "${shift.name}"?`
-    );
+    const confirmed = await this.uiFeedback.confirm({
+      title: newStatus === 'ACTIVE' ? 'Activate shift?' : 'Deactivate shift?',
+      message: `Are you sure you want to ${newStatus === 'ACTIVE' ? 'activate' : 'deactivate'} "${shift.name}"?`,
+      confirmLabel: newStatus === 'ACTIVE' ? 'Activate' : 'Deactivate',
+      tone: newStatus === 'ACTIVE' ? 'primary' : 'warning'
+    });
 
     if (!confirmed) return;
 

@@ -1,3 +1,4 @@
+import { FeedbackService } from '../../shared/feedback/feedback.service';
 
 import {
   Component,
@@ -6,9 +7,17 @@ import {
   inject
 } from '@angular/core';
 
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { finalize } from 'rxjs';
+
 import { Auth } from '../../services/auth';
+import {
+  OrganizationService,
+  Organization
+} from '../../services/organization';
+
 import { environment } from '../../../environments/environment';
 
 interface SummaryCard {
@@ -38,45 +47,369 @@ interface Department {
 
 interface RecentAttendance {
   date: string;
+  workDate?: string;
   punchIn: string;
   punchOut: string;
   workHours: string;
   status: string;
 }
 
+interface SuperAdminStat {
+  title: string;
+  value: number;
+  icon: string;
+  color: string;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [],
+  imports: [
+    CommonModule,
+    FormsModule
+  ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
+  private readonly uiFeedback = inject(FeedbackService);
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get errorMessage(): string { return ''; }
+  set errorMessage(value: string) {
+    if (value) this.uiFeedback.error(value);
+  }
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get organizationSuccessMessage(): string { return ''; }
+  set organizationSuccessMessage(value: string) {
+    if (value) this.uiFeedback.success(value);
+  }
+
 
   private http = inject(HttpClient);
   private auth = inject(Auth);
   private cdr = inject(ChangeDetectorRef);
+  private organizationService = inject(OrganizationService);
 
   private readonly API_URL = `${environment.apiUrl}/dashboard`;
 
+  // ==========================================
+  // USER ROLE
+  // ==========================================
+
   userRole = this.auth.getUser()?.role ?? '';
+
+  isSuperAdmin = this.userRole === 'SUPER_ADMIN';
   isEmployee = this.userRole === 'EMPLOYEE';
+  isAdmin = this.userRole === 'ADMIN';
+
+
+  // ==========================================
+  // COMMON PROPERTIES
+  // ==========================================
 
   isLoading = true;
-  errorMessage = '';
+  
 
   summaryCards: SummaryCard[] = [];
+
   attendanceTrend: AttendanceTrend[] = [];
+
   departments: Department[] = [];
+
   recentAttendance: RecentAttendance[] = [];
 
-  ngOnInit(): void {
-    if (this.isEmployee) {
-      this.loadEmployeeDashboard();
-    } else {
-      this.loadAdminDashboard();
-    }
+  // Employee dashboard display controls (no changes to Admin/Super Admin).
+  employeeView: 'daily' | 'monthly' = 'daily';
+  employeeSelectedMonth = '';
+
+  setEmployeeView(view: 'daily' | 'monthly'): void {
+    this.employeeView = view;
   }
+
+  get employeeFilteredAttendance(): RecentAttendance[] {
+    const records = this.recentAttendance.filter(record =>
+      !this.employeeSelectedMonth || (record.workDate || '').startsWith(this.employeeSelectedMonth)
+    );
+    if (this.employeeView === 'monthly') return records;
+    // Daily view shows individual records, latest first. Monthly view uses the same
+    // available records grouped in the chart; no undocumented API calls are made.
+    return records;
+  }
+
+  get employeeChartBars(): { status: string; count: number; percent: number }[] {
+    const records = this.employeeFilteredAttendance;
+    const groups = [
+      { status: 'Present', code: 'PRESENT' },
+      { status: 'Late', code: 'LATE' },
+      { status: 'Absent', code: 'ABSENT' },
+      { status: 'Half Day', code: 'HALF_DAY' }
+    ];
+    const counts = groups.map(group => ({
+      status: group.status,
+      count: records.filter(record => record.status === group.code).length
+    }));
+    const maximum = Math.max(1, ...counts.map(item => item.count));
+    return counts.map(item => ({ ...item, percent: (item.count / maximum) * 100 }));
+  }
+
+
+  // ==========================================
+  // SUPER ADMIN PROPERTIES
+  // ==========================================
+
+  organizations: Organization[] = [];
+
+  organizationSearch = '';
+
+  // Create organization modal
+  showCreateOrganizationModal = false;
+  isSavingOrganization = false;
+  newOrganizationName = '';
+  createOrganizationError = '';
+  
+
+  superAdminStats: SuperAdminStat[] = [
+    {
+      title: 'Total Organizations',
+      value: 0,
+      icon: 'building',
+      color: 'blue'
+    },
+    {
+      title: 'Total Employees',
+      value: 0,
+      icon: 'users',
+      color: 'purple'
+    },
+    {
+      title: 'Total Admins',
+      value: 0,
+      icon: 'shield',
+      color: 'green'
+    }
+  ];
+
+
+  // ==========================================
+  // INITIALIZATION
+  // ==========================================
+
+  ngOnInit(): void {
+
+    if (this.isSuperAdmin) {
+
+      this.loadSuperAdminDashboard();
+
+    } else if (this.isEmployee) {
+
+      this.loadEmployeeDashboard();
+
+    } else {
+
+      this.loadAdminDashboard();
+
+    }
+
+  }
+
+
+  // ==========================================
+  // SUPER ADMIN DASHBOARD
+  // ==========================================
+
+  private loadSuperAdminDashboard(): void {
+
+    let completedRequests = 0;
+
+    const handleComplete = (): void => {
+
+      completedRequests++;
+
+      if (completedRequests === 2) {
+        this.isLoading = false;
+      }
+
+      this.cdr.markForCheck();
+
+    };
+
+
+    // 1. ORGANIZATION LIST
+
+    this.organizationService
+      .getOrganizations()
+      .pipe(
+        finalize(() => handleComplete())
+      )
+      .subscribe({
+
+        next: (response) => {
+
+          this.organizations = Array.isArray(response?.data)
+            ? response.data
+            : [];
+
+          this.superAdminStats[0].value =
+            this.organizations.length;
+
+          this.cdr.markForCheck();
+
+        },
+
+        error: (error) => {
+
+          console.error('Organization API error:', error);
+
+          this.errorMessage =
+            'Unable to load organizations.';
+
+          this.cdr.markForCheck();
+
+        }
+
+      });
+
+
+    // 2. PLATFORM STATISTICS
+
+    this.http
+      .get<any>(`${this.API_URL}/overview`)
+      .pipe(
+        finalize(() => handleComplete())
+      )
+      .subscribe({
+
+        next: (data) => {
+
+          const overview = data?.data ?? data ?? {};
+
+          this.superAdminStats[1].value =
+            overview.totalEmployees ?? 0;
+
+          this.superAdminStats[2].value =
+            overview.totalAdmins ?? 0;
+
+          this.cdr.markForCheck();
+
+        },
+
+        error: (error) => {
+
+          console.error('Platform statistics API error:', error);
+
+          this.errorMessage =
+            'Unable to load platform statistics.';
+
+          this.cdr.markForCheck();
+
+        }
+
+      });
+
+  }
+
+
+  // ==========================================
+  // ORGANIZATION SEARCH
+  // ==========================================
+
+  get filteredOrganizations(): Organization[] {
+
+    const search = this.organizationSearch
+      .trim()
+      .toLowerCase();
+
+    if (!search) {
+      return this.organizations;
+    }
+
+    return this.organizations.filter(org =>
+      org.name.toLowerCase().includes(search)
+    );
+
+  }
+
+
+  // ==========================================
+  // ADD ORGANIZATION
+  // ==========================================
+
+  openCreateOrganization(): void {
+    this.newOrganizationName = '';
+    this.createOrganizationError = '';
+    this.showCreateOrganizationModal = true;
+  }
+
+  closeCreateOrganization(): void {
+    if (this.isSavingOrganization) return;
+
+    this.showCreateOrganizationModal = false;
+    this.newOrganizationName = '';
+    this.createOrganizationError = '';
+  }
+
+  createOrganization(): void {
+    const name = this.newOrganizationName.trim();
+
+    if (name.length < 2 || name.length > 150) {
+      this.createOrganizationError =
+        'Organization name must contain 2–150 characters.';
+      return;
+    }
+
+    this.isSavingOrganization = true;
+    this.createOrganizationError = '';
+    this.organizationSuccessMessage = '';
+
+    this.organizationService.createOrganization(name).subscribe({
+      next: (response) => {
+        const createdOrganization = response?.data;
+
+        if (createdOrganization) {
+          // Add the new organization immediately without leaving the dashboard.
+          this.organizations = [
+            createdOrganization,
+            ...this.organizations.filter(
+              organization => organization.id !== createdOrganization.id
+            )
+          ];
+
+          this.superAdminStats[0].value = this.organizations.length;
+        }
+
+        this.organizationSuccessMessage =
+          response?.message || 'Organization created successfully.';
+
+        this.isSavingOrganization = false;
+        this.showCreateOrganizationModal = false;
+        this.newOrganizationName = '';
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        const message = error?.error?.message;
+        this.createOrganizationError = Array.isArray(message)
+          ? message.join(', ')
+          : message || 'Unable to create organization. Please try again.';
+
+        this.isSavingOrganization = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  // Kept as an alias so any existing template references continue to work.
+  goToOrganizations(): void {
+    this.openCreateOrganization();
+  }
+
+
+  // ==========================================
+  // ADMIN DASHBOARD
+  // ==========================================
 
   private loadAdminDashboard(): void {
 
@@ -96,13 +429,12 @@ export class Dashboard implements OnInit {
         this.isLoading = false;
       }
 
-      // Notify Angular that component data has changed.
       this.cdr.markForCheck();
+
     };
 
-    // ==========================================
+
     // 1. COMPANY OVERVIEW
-    // ==========================================
 
     this.http
       .get<any>(`${this.API_URL}/overview`)
@@ -116,13 +448,7 @@ export class Dashboard implements OnInit {
           const attendance = data.attendance;
 
           this.summaryCards = [
-            {
-              title: 'Total Admins',
-              value: data.totalAdmins,
-              change: 'Active administrators',
-              icon: '♟',
-              color: 'purple',
-            },
+
             {
               title: 'Total Employees',
               value: data.totalEmployees,
@@ -130,6 +456,7 @@ export class Dashboard implements OnInit {
               icon: '👥',
               color: 'blue',
             },
+
             {
               title: 'Present Today',
               value: attendance.present + attendance.late,
@@ -137,32 +464,36 @@ export class Dashboard implements OnInit {
               icon: '✓',
               color: 'green',
             },
+
             {
               title: 'Attendance Rate',
               value: `${attendance.attendancePercentage}%`,
               change: 'Based on today’s attendance',
               icon: '↗',
               color: 'purple',
-            },
+            }
+
           ];
 
           this.cdr.markForCheck();
+
         },
 
         error: (error) => {
 
           console.error('Overview API error:', error);
 
-          this.errorMessage = 'Unable to load company overview.';
+          this.errorMessage =
+            'Unable to load company overview.';
 
           this.cdr.markForCheck();
+
         }
+
       });
 
 
-    // ==========================================
     // 2. ATTENDANCE TREND
-    // ==========================================
 
     this.http
       .get<any>(
@@ -202,25 +533,28 @@ export class Dashboard implements OnInit {
                   )
                 : 0
             };
+
           });
 
           this.cdr.markForCheck();
+
         },
 
         error: (error) => {
 
           console.error('Attendance trend API error:', error);
 
-          this.errorMessage = 'Unable to load attendance trend.';
+          this.errorMessage =
+            'Unable to load attendance trend.';
 
           this.cdr.markForCheck();
+
         }
+
       });
 
 
-    // ==========================================
     // 3. DEPARTMENT STATISTICS
-    // ==========================================
 
     this.http
       .get<any[]>(
@@ -259,6 +593,7 @@ export class Dashboard implements OnInit {
           );
 
           this.cdr.markForCheck();
+
         },
 
         error: (error) => {
@@ -269,7 +604,9 @@ export class Dashboard implements OnInit {
             'Unable to load department statistics.';
 
           this.cdr.markForCheck();
+
         }
+
       });
 
   }
@@ -299,6 +636,7 @@ export class Dashboard implements OnInit {
           const summary = data.summary;
 
           this.summaryCards = [
+
             {
               title: 'Recorded Days',
               value: summary.totalRecordedDays,
@@ -306,6 +644,7 @@ export class Dashboard implements OnInit {
               icon: '📅',
               color: 'blue',
             },
+
             {
               title: 'Present Days',
               value: summary.present,
@@ -313,6 +652,7 @@ export class Dashboard implements OnInit {
               icon: '✓',
               color: 'green',
             },
+
             {
               title: 'Late Days',
               value: summary.late,
@@ -320,13 +660,15 @@ export class Dashboard implements OnInit {
               icon: '⏰',
               color: 'purple',
             },
+
             {
               title: 'Attendance Rate',
               value: `${summary.attendancePercentage}%`,
               change: `${summary.totalWorkHours} total work hours`,
               icon: '↗',
               color: 'blue',
-            },
+            }
+
           ];
 
           this.recentAttendance = (
@@ -336,7 +678,11 @@ export class Dashboard implements OnInit {
             const latestSession = record.sessions?.[0];
 
             return {
+
               date: this.formatDate(record.workDate),
+              workDate: typeof record.workDate === 'string'
+                ? record.workDate.substring(0, 10)
+                : new Date(record.workDate).toISOString().substring(0, 10),
 
               punchIn: this.formatTime(
                 latestSession?.punchInAt
@@ -351,11 +697,16 @@ export class Dashboard implements OnInit {
               } hrs`,
 
               status: record.status,
+
             };
 
           });
 
+          if (this.recentAttendance.length && !this.employeeSelectedMonth) {
+            this.employeeSelectedMonth = (this.recentAttendance[0].workDate || '').substring(0, 7);
+          }
           this.cdr.markForCheck();
+
         },
 
         error: (error) => {
@@ -366,7 +717,9 @@ export class Dashboard implements OnInit {
             'Unable to load your attendance details.';
 
           this.cdr.markForCheck();
+
         }
+
       });
 
   }
@@ -381,9 +734,11 @@ export class Dashboard implements OnInit {
     if (!value) return '--';
 
     return new Date(value).toLocaleDateString('en-IN', {
+
       day: '2-digit',
       month: 'short',
       year: 'numeric',
+
     });
 
   }
@@ -398,9 +753,11 @@ export class Dashboard implements OnInit {
     if (!value) return '--';
 
     return new Date(value).toLocaleTimeString('en-IN', {
+
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
+
     });
 
   }

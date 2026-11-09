@@ -1,3 +1,4 @@
+import { FeedbackService } from '../../shared/feedback/feedback.service';
 
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -8,6 +9,8 @@ import {
   Validators
 } from '@angular/forms';
 import { finalize } from 'rxjs';
+import { Auth } from '../../services/auth';
+import { OrganizationService, Organization } from '../../services/organization';
 
 import {
   EmployeeService,
@@ -39,16 +42,36 @@ import {
   templateUrl: './employees.html'
 })
 export class Employees implements OnInit {
+  private readonly uiFeedback = inject(FeedbackService);
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get errorMessage(): string { return ''; }
+  set errorMessage(value: string) {
+    if (value) this.uiFeedback.error(value);
+  }
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get successMessage(): string { return ''; }
+  set successMessage(value: string) {
+    if (value) this.uiFeedback.success(value);
+  }
+
 
   private employeeService = inject(EmployeeService);
   private workLocationService = inject(WorkLocationService);
   private shiftService = inject(ShiftService);
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
+  private authService = inject(Auth);
+  private organizationService = inject(OrganizationService);
 
   // Data
   employees: Employee[] = [];
   departments: Department[] = [];
+  organizations: Organization[] = [];
+  loadingOrganizations = false;
   workLocations: WorkLocation[] = [];
   shifts: Shift[] = [];
   selectedEmployeeShiftId: string | null = null;
@@ -60,20 +83,27 @@ export class Employees implements OnInit {
   loadingShifts = false;
 
   // Messages
-  errorMessage = '';
-  successMessage = '';
+  
+  
   locationErrorMessage = '';
 
   // Filters
   searchTerm = '';
   statusFilter = '';
   departmentFilter = '';
+  organizationFilter = '';
 
   // Pagination
   currentPage = 1;
   pageSize = 10;
   totalEmployees = 0;
   totalPages = 0;
+
+  // Admin-only custom employee deactivation dialog
+  showDeleteModal = false;
+  employeeToDelete: Employee | null = null;
+  deletingEmployee = false;
+  deleteErrorMessage = '';
 
   // Employee modal
   showAddModal = false;
@@ -148,11 +178,37 @@ export class Employees implements OnInit {
   // INITIALIZATION
   // ==========================================
 
+  get isSuperAdmin(): boolean {
+    return this.authService.getUser()?.role === 'SUPER_ADMIN';
+  }
+
   ngOnInit(): void {
-    this.loadDepartments();
+    if (this.isSuperAdmin) {
+      this.loadOrganizations();
+    } else {
+      this.loadDepartments();
+      this.loadWorkLocations();
+      this.loadShifts();
+    }
     this.loadEmployees();
-    this.loadWorkLocations();
-    this.loadShifts();
+  }
+
+  loadOrganizations(): void {
+    this.loadingOrganizations = true;
+    this.organizationService.getOrganizations()
+      .pipe(finalize(() => {
+        this.loadingOrganizations = false;
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: (response) => {
+          this.organizations = response?.data || [];
+        },
+        error: (error) => {
+          console.error('Failed to load organizations:', error);
+          this.organizations = [];
+        }
+      });
   }
 
   // ==========================================
@@ -219,7 +275,8 @@ export class Employees implements OnInit {
       this.pageSize,
       this.searchTerm,
       this.statusFilter,
-      this.departmentFilter
+      this.isSuperAdmin ? '' : this.departmentFilter,
+      this.isSuperAdmin ? this.organizationFilter : ''
     )
     .pipe(
       finalize(() => {
@@ -272,6 +329,7 @@ export class Employees implements OnInit {
     this.searchTerm = '';
     this.statusFilter = '';
     this.departmentFilter = '';
+    this.organizationFilter = '';
 
     this.currentPage = 1;
 
@@ -333,6 +391,8 @@ export class Employees implements OnInit {
   }
 
   openLocationModal(employee: Employee): void {
+
+    if (this.isSuperAdmin) return;
 
     this.selectedEmployeeForLocation = employee;
 
@@ -508,6 +568,8 @@ export class Employees implements OnInit {
 
   openAddModal(): void {
 
+    if (this.isSuperAdmin) return;
+
     this.isEditMode = false;
 
     this.selectedEmployeeId = null;
@@ -539,6 +601,8 @@ export class Employees implements OnInit {
   // ==========================================
 
   openEditModal(employee: Employee): void {
+
+    if (this.isSuperAdmin) return;
 
     this.isEditMode = true;
 
@@ -693,11 +757,11 @@ export class Employees implements OnInit {
         }
 
         if (!createdEmployeeId) {
-          this.saving = false;
-          this.errorMessage =
-            'Employee was created, but the employee ID was not returned. The shift could not be assigned.';
-          this.cdr.detectChanges();
-          this.loadEmployees();
+          // Creation succeeded. Close the form even if the API did not
+          // return an ID needed for the optional shift assignment.
+          this.completeEmployeeSave(
+            'Employee created successfully, but the shift could not be assigned because the employee ID was not returned.'
+          );
           return;
         }
 
@@ -826,6 +890,54 @@ export class Employees implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  // ==========================================
+  // DEACTIVATE EMPLOYEE (ADMIN ONLY)
+  // ==========================================
+
+  openDeleteModal(employee: Employee): void {
+    if (this.isSuperAdmin || this.deletingEmployee) return;
+    this.employeeToDelete = employee;
+    this.deleteErrorMessage = '';
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    if (this.deletingEmployee) return;
+    this.showDeleteModal = false;
+    this.employeeToDelete = null;
+    this.deleteErrorMessage = '';
+  }
+
+  confirmDeleteEmployee(): void {
+    if (this.isSuperAdmin || this.deletingEmployee || !this.employeeToDelete) return;
+
+    const employeeId = this.employeeToDelete.id;
+    this.deletingEmployee = true;
+    this.deleteErrorMessage = '';
+
+    this.employeeService.deleteEmployee(employeeId)
+      .pipe(finalize(() => {
+        this.deletingEmployee = false;
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: (response: any) => {
+          this.showDeleteModal = false;
+          this.employeeToDelete = null;
+          this.successMessage = response?.message || 'Employee deactivated successfully.';
+          // If the last record on a page was removed, go back one page.
+          if (this.employees.length === 1 && this.currentPage > 1) {
+            this.currentPage--;
+          }
+          this.loadEmployees();
+        },
+        error: (error) => {
+          this.deleteErrorMessage = error.error?.message ||
+            'Unable to deactivate employee. Check that the backend supports soft deletion.';
+        }
+      });
   }
 
   // ==========================================

@@ -108,8 +108,8 @@
             <th class="px-5 py-4">Shift</th>
             <th class="px-5 py-4">Working Hours</th>
             <th class="px-5 py-4">Grace Period</th>
-            <th class="px-5 py-4">Late Reason</th>
-            <th class="px-5 py-4">Approval Threshold</th>
+            <th class="px-5 py-4">Admin Approval After</th>
+            <th class="px-5 py-4">Punch In Disabled After</th>
             <th class="px-5 py-4">Employees</th>
             <th class="px-5 py-4">Status</th>
             <th class="px-5 py-4">Actions</th>
@@ -294,17 +294,17 @@
           Late Arrival Policy
         </h3>
         <p class="mb-4 rounded-lg bg-blue-50 p-3 text-xs leading-5 text-blue-800">
-          Example for a 09:00 AM shift: 10 minutes grace, reason required from
-          15 minutes late, and Admin approval required from 30 minutes late.
-          The reason and approval thresholds are calculated independently from
-          the shift start time.
+          Example for a 09:00 AM shift: 10-minute grace period, Admin approval
+          required from 09:15 AM, and punch-in completely disabled at 09:30 AM.
+          Employees attempting to punch in at or after the cutoff must contact Admin.
+          Both thresholds are measured from shift start, not from the end of grace.
         </p>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
           <div>
             <label class="mb-2 block text-sm font-medium text-slate-700">
-              Late Reason Required After (Minutes From Shift Start)
+              Admin Approval Required After (Minutes From Shift Start)
             </label>
 
             <input
@@ -317,13 +317,13 @@
               class="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500">
 
             <p class="mt-1 text-xs text-slate-500">
-              Default: 15 minutes. Measured from the scheduled shift start, not added to the grace period. Leave empty to disable this threshold.
+              Default: 15 minutes after shift start. A late employee must provide a reason and wait for Admin approval. Leave empty to disable approval requests.
             </p>
           </div>
 
           <div>
             <label class="mb-2 block text-sm font-medium text-slate-700">
-              Admin Approval Required After (Minutes From Shift Start)
+              Punch In Disabled After (Minutes From Shift Start)
             </label>
 
             <input
@@ -336,7 +336,7 @@
               class="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500">
 
             <p class="mt-1 text-xs text-slate-500">
-              Default: 30 minutes. Measured from the scheduled shift start. When reached, the employee must provide a reason and wait for Admin approval. Must be greater than the late-reason threshold when both are configured.
+              Default: 30 minutes after shift start. At or after this time, Punch In is disabled and the employee is told to contact Admin. Leave empty for no hard cutoff. Must be later than the approval threshold when both are configured.
             </p>
           </div>
 

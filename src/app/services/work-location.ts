@@ -14,6 +14,7 @@ export interface WorkLocation {
   latitude: number;
   longitude: number;
   radiusMeters: number;
+  allowedPublicIps: string[];
   status: 'ACTIVE' | 'INACTIVE';
   createdAt: string;
   updatedAt: string;
@@ -57,6 +58,14 @@ export class WorkLocationService {
 
   update(id: string, payload: UpdateWorkLocationPayload): Observable<any> {
     return this.http.patch(`${this.apiUrl}/${id}`, payload);
+  }
+
+  updateWifiIps(id: string, allowedPublicIps: string[]): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/wifi-ips`, { allowedPublicIps });
+  }
+
+  activate(id: string, allowedPublicIps?: string[]): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/activate`, { allowedPublicIps });
   }
 
   deactivate(id: string): Observable<any> {

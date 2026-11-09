@@ -1,3 +1,4 @@
+import { FeedbackService } from '../../shared/feedback/feedback.service';
 
 import { CommonModule } from '@angular/common';
 import {
@@ -7,6 +8,7 @@ import {
   OnInit
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { switchMap } from 'rxjs';
 
 import {
   WorkLocationService,
@@ -22,6 +24,36 @@ import {
   templateUrl: './work-locations.html'
 })
 export class WorkLocationsComponent implements OnInit {
+  private readonly uiFeedback = inject(FeedbackService);
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get errorMessage(): string { return ''; }
+  set errorMessage(value: string) {
+    if (value) this.uiFeedback.error(value);
+  }
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get successMessage(): string { return ''; }
+  set successMessage(value: string) {
+    if (value) this.uiFeedback.success(value);
+  }
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get assignmentError(): string { return ''; }
+  set assignmentError(value: string) {
+    if (value) this.uiFeedback.error(value);
+  }
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get assignmentSuccess(): string { return ''; }
+  set assignmentSuccess(value: string) {
+    if (value) this.uiFeedback.success(value);
+  }
+
 
   private service = inject(WorkLocationService);
   private cdr = inject(ChangeDetectorRef);
@@ -32,10 +64,15 @@ export class WorkLocationsComponent implements OnInit {
   // Display-only addresses resolved from GPS coordinates when no address is stored.
   locationAddresses: Record<string, string> = {};
 
+  statusDialogLocation: WorkLocation | null = null;
+  statusSaving = false;
+  statusError = '';
+  activationIp = '';
+
   loading = false;
   saving = false;
-  errorMessage = '';
-  successMessage = '';
+  
+  
 
   searchTerm = '';
   typeFilter = 'ALL';
@@ -68,7 +105,8 @@ export class WorkLocationsComponent implements OnInit {
     address: '',
     latitude: null as number | null,
     longitude: null as number | null,
-    radiusMeters: 100
+    radiusMeters: 100,
+    wifiIpsText: ''
   };
 
   assignmentMode: 'permanent' | 'temporary' = 'permanent';
@@ -82,8 +120,8 @@ export class WorkLocationsComponent implements OnInit {
   };
 
   assigning = false;
-  assignmentError = '';
-  assignmentSuccess = '';
+  
+  
 
   ngOnInit(): void {
     this.loadLocations();
@@ -188,6 +226,49 @@ export class WorkLocationsComponent implements OnInit {
     return this.locationTypes.find(x => x.value === type)?.label || type;
   }
 
+  openStatusDialog(location: WorkLocation): void {
+    this.statusDialogLocation = location;
+    this.statusError = '';
+    this.activationIp = '';
+  }
+
+  closeStatusDialog(): void {
+    if (this.statusSaving) return;
+    this.statusDialogLocation = null;
+    this.statusError = '';
+  }
+
+  confirmStatusChange(): void {
+    const location = this.statusDialogLocation;
+    if (!location || this.statusSaving) return;
+    const activate = location.status === 'INACTIVE';
+    const newIp = this.activationIp.trim();
+    if (activate && location.type === 'OFFICE' && !(location.allowedPublicIps?.length) && !newIp) {
+      this.statusError = 'Enter the office public IP before activation.';
+      return;
+    }
+    this.statusSaving = true;
+    this.statusError = '';
+    const request = activate
+      ? this.service.activate(location.id, newIp ? [newIp] : undefined)
+      : this.service.deactivate(location.id);
+    request.subscribe({
+      next: () => {
+        this.statusSaving = false;
+        this.statusDialogLocation = null;
+        this.successMessage = activate
+          ? `Work location "${location.name}" activated successfully.`
+          : `Work location "${location.name}" deactivated successfully.`;
+        this.loadLocations();
+      },
+      error: (error) => {
+        this.statusSaving = false;
+        this.statusError = this.getError(error);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   openCreateModal(): void {
     this.modalMode = 'create';
     this.editingLocationId = null;
@@ -210,7 +291,8 @@ export class WorkLocationsComponent implements OnInit {
       address: location.address || '',
       latitude: Number(location.latitude),
       longitude: Number(location.longitude),
-      radiusMeters: location.radiusMeters
+      radiusMeters: location.radiusMeters,
+      wifiIpsText: (location.allowedPublicIps || []).join(', ')
     };
 
     this.selectedPlaceLabel =
@@ -235,7 +317,8 @@ export class WorkLocationsComponent implements OnInit {
       address: '',
       latitude: null,
       longitude: null,
-      radiusMeters: 100
+      radiusMeters: 100,
+    wifiIpsText: ''
     };
 
     this.locationMethod = 'current';
@@ -376,6 +459,16 @@ export class WorkLocationsComponent implements OnInit {
       return;
     }
 
+    const ips = this.form.wifiIpsText.split(/[\n,]+/).map(x => x.trim()).filter(Boolean);
+    if (this.form.type === 'OFFICE' && ips.length === 0) {
+      this.errorMessage = 'At least one office public Wi-Fi IP address is required.';
+      return;
+    }
+    const ipv4 = /^(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
+    if (ips.length > 20 || ips.some(ip => !ipv4.test(ip))) {
+      this.errorMessage = 'Enter up to 20 valid public IPv4 addresses separated by commas.';
+      return;
+    }
     this.saving = true;
 
     const payload = {
@@ -391,7 +484,13 @@ export class WorkLocationsComponent implements OnInit {
       ? this.service.update(this.editingLocationId, payload)
       : this.service.create(payload);
 
-    request.subscribe({
+    request.pipe(
+      switchMap((response: any) => {
+        const id = this.editingLocationId || response?.location?.id;
+        if (!id) throw new Error('Location saved, but its ID was not returned. Please edit the location to configure Wi-Fi IPs.');
+        return this.service.updateWifiIps(id, ips);
+      })
+    ).subscribe({
       next: response => {
         this.successMessage =
           response?.message ||
@@ -413,14 +512,17 @@ export class WorkLocationsComponent implements OnInit {
     });
   }
 
-  deactivateLocation(location: WorkLocation): void {
+  async deactivateLocation(location: WorkLocation): Promise<void> {
     if (location.status !== 'ACTIVE') {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Are you sure you want to deactivate "${location.name}"? It will no longer be available for new employee assignments.`
-    );
+    const confirmed = await this.uiFeedback.confirm({
+      title: 'Deactivate work location?',
+      message: `Deactivate "${location.name}"? It will no longer be available for new employee assignments.`,
+      confirmLabel: 'Deactivate',
+      tone: 'warning'
+    });
 
     if (!confirmed) {
       return;

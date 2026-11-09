@@ -1,3 +1,4 @@
+import { FeedbackService } from '../../shared/feedback/feedback.service';
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -5,8 +6,17 @@ import { NotificationService } from '../../services/notification';
 
 @Component({ selector: 'app-notifications', standalone: true, imports: [CommonModule, DatePipe, FormsModule], templateUrl: './notifications.html' })
 export class Notifications implements OnInit {
+  private readonly uiFeedback = inject(FeedbackService);
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get error(): string { return ''; }
+  set error(value: string) {
+    if (value) this.uiFeedback.error(value);
+  }
+
   private readonly api = inject(NotificationService);
-  notifications: any[] = []; unreadCount = 0; loading = true; error = ''; unreadOnly = false; busy = false;
+  notifications: any[] = []; unreadCount = 0; loading = true;  unreadOnly = false; busy = false;
   ngOnInit(): void { this.load(); }
   load(): void {
     this.loading = true; this.error = '';

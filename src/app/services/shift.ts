@@ -12,7 +12,9 @@ export interface Shift {
   startTime: string;
   endTime: string;
   gracePeriodMinutes: number;
+  /** Stored legacy name: now the Admin approval threshold. */
   lateReasonAfterMinutes: number | null;
+  /** Stored legacy name: now the hard punch-in cutoff. */
   approvalRequiredAfterMinutes: number | null;
   status: ShiftStatus;
   createdAt: string;
@@ -27,7 +29,9 @@ export interface ShiftPayload {
   startTime: string;
   endTime: string;
   gracePeriodMinutes?: number;
+  /** Admin approval threshold (legacy API field). */
   lateReasonAfterMinutes?: number | null;
+  /** Punch-in cutoff threshold (legacy API field). */
   approvalRequiredAfterMinutes?: number | null;
 }
 

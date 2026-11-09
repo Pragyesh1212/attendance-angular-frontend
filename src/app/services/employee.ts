@@ -13,6 +13,10 @@ export interface Employee {
   status: EmployeeStatus;
   createdAt: string;
   updatedAt?: string;
+  organization?: {
+    id: string;
+    name: string;
+  } | null;
   employeeProfile: {
     id: string;
     employeeCode: string;
@@ -109,7 +113,8 @@ export class EmployeeService {
     limit = 10,
     search = '',
     status = '',
-    departmentId = ''
+    departmentId = '',
+    organizationId = ''
   ): Observable<EmployeeResponse> {
 
     let params = new HttpParams()
@@ -126,6 +131,10 @@ export class EmployeeService {
 
     if (departmentId) {
       params = params.set('departmentId', departmentId);
+    }
+
+    if (organizationId) {
+      params = params.set('organizationId', organizationId);
     }
 
     return this.http.get<EmployeeResponse>(
@@ -150,6 +159,17 @@ export class EmployeeService {
     return this.http.patch(
       `${this.apiUrl}/users/employees/${employeeId}`,
       payload
+    );
+  }
+
+  /**
+   * Backend contract required: DELETE /users/employees/:employeeId
+   * must perform SOFT deletion (set status to INACTIVE), not erase
+   * the employee or their attendance history.
+   */
+  deleteEmployee(employeeId: string): Observable<any> {
+    return this.http.delete(
+      `${this.apiUrl}/users/employees/${encodeURIComponent(employeeId)}`
     );
   }
 

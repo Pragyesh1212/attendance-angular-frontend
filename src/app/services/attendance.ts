@@ -13,6 +13,14 @@ export interface AttendanceQuery {
   employeeProfileId?: string;
 }
 
+export interface PunchInPolicy {
+  status: 'NOT_STARTED' | 'OPEN' | 'CLOSED';
+  cutoffReached: boolean;
+  opensAt: string | null;
+  cutoffAt: string | null;
+  message: string | null;
+}
+
 export interface PunchInPayload {
   latitude: number;
   longitude: number;
@@ -97,6 +105,10 @@ export class Attendance {
       `${this.API_URL}/my`,
       { params: this.buildParams(query) }
     );
+  }
+
+  getMyPunchInPolicy(): Observable<PunchInPolicy> {
+    return this.http.get<PunchInPolicy>(`${this.API_URL}/my/punch-in-policy`);
   }
 
   punchIn(data: PunchInPayload): Observable<any> {

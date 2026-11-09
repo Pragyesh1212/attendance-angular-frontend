@@ -1,127 +1,241 @@
 
 <div class="space-y-6">
 
-  <!-- Loading State -->
+  <!-- LOADING STATE -->
+
   @if (isLoading) {
+
     <div class="rounded-xl border border-slate-200 bg-white p-10 text-center shadow-sm">
+
       <div class="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"></div>
-      <p class="mt-4 text-sm text-slate-500">Loading dashboard...</p>
+
+      <p class="mt-4 text-sm text-slate-500">
+        Loading dashboard...
+      </p>
+
     </div>
+
   }
 
-  <!-- Error Message -->
+
+  <!-- ERROR MESSAGE -->
+
   @if (errorMessage) {
+
     <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
       {{ errorMessage }}
     </div>
+
   }
+
 
   @if (!isLoading) {
 
-    <!-- Page Heading -->
-    <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-      <div>
-        <h2 class="text-2xl font-bold text-slate-800">
-          {{ isEmployee ? 'My Dashboard' : 'Company Overview' }}
-        </h2>
 
-        <p class="mt-1 text-sm text-slate-500">
-          @if (isEmployee) {
-            Welcome back, {{ employeeName }}. Here's your attendance summary.
-          } @else {
-            Monitor company-wide workforce and attendance performance.
-          }
-        </p>
-      </div>
-    </div>
+    <!-- ================================== -->
+    <!-- SUPER ADMIN DASHBOARD -->
+    <!-- ================================== -->
 
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    @if (isSuperAdmin) {
 
-      @for (card of summaryCards; track card.title) {
-        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="super-admin-dashboard">
 
-          <div class="flex items-center justify-between">
-            <p class="text-sm font-medium text-slate-500">
-              {{ card.title }}
+        <!-- PAGE HEADING -->
+
+        <div class="super-page-heading">
+
+          <div>
+
+            <h2>
+              Super Admin <span>Dashboard</span>
+            </h2>
+
+            <p>
+              Manage organizations and platform administration from here.
             </p>
 
-            <div
-              class="flex h-10 w-10 items-center justify-center rounded-lg text-lg font-bold"
-              [class.bg-blue-50]="card.color === 'blue'"
-              [class.text-blue-600]="card.color === 'blue'"
-              [class.bg-green-50]="card.color === 'green'"
-              [class.text-green-600]="card.color === 'green'"
-              [class.bg-red-50]="card.color === 'red'"
-              [class.text-red-600]="card.color === 'red'"
-              [class.bg-purple-50]="card.color === 'purple'"
-              [class.text-purple-600]="card.color === 'purple'">
-
-              {{ card.icon }}
-            </div>
           </div>
 
-          <h3 class="mt-4 text-3xl font-bold text-slate-800">
-            {{ card.value }}
-          </h3>
+          <button
+            type="button"
+            (click)="openCreateOrganization()"
+            class="super-primary-button">
 
-          <p class="mt-2 text-xs text-slate-500">
-            {{ card.change }}
-          </p>
+            <span>＋</span>
+            Add Organization
+
+          </button>
 
         </div>
-      }
 
-    </div>
 
-    <!-- ADMIN / SUPER ADMIN DASHBOARD -->
-    @if (!isEmployee) {
+        <!-- STATISTICS -->
 
-      <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div class="super-stats-grid">
 
-        <!-- Attendance Trend -->
-        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-2">
+          @for (stat of superAdminStats; track stat.title) {
 
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h3 class="font-semibold text-slate-800">
-                Attendance Overview
-              </h3>
+            <div
+              class="super-stat-card"
+              [class.super-blue]="stat.color === 'blue'"
+              [class.super-purple]="stat.color === 'purple'"
+              [class.super-green]="stat.color === 'green'">
 
-              <p class="mt-1 text-xs text-slate-500">
-                Daily attendance percentage for the selected month
-              </p>
+              <div class="super-stat-icon">
+
+                @if (stat.icon === 'building') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 21h18M5 21V7l7-4v18M19 21V11l-7-4"/>
+                    <path d="M9 8h.01M9 12h.01M9 16h.01M15 12h.01M15 16h.01"/>
+                  </svg>
+                }
+
+                @if (stat.icon === 'users') {
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="9" cy="8" r="4"/>
+                    <path d="M2 20c0-4 3-6 7-6s7 2 7 6v1H2z"/>
+                    <circle cx="18" cy="8" r="3"/>
+                    <path d="M17 14c3 0 6 2 6 5v2h-5v-1c0-2-1-4-3-5z"/>
+                  </svg>
+                }
+
+                @if (stat.icon === 'shield') {
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2 3 6v6c0 5.5 3.8 9 9 11 5.2-2 9-5.5 9-11V6z"/>
+                    <path d="m8 12 3 3 5-6" fill="none" stroke="white" stroke-width="2"/>
+                  </svg>
+                }
+
+              </div>
+
+              <div class="super-stat-content">
+
+                <h3>{{ stat.title }}</h3>
+
+                <h2>{{ stat.value }}</h2>
+
+              </div>
+
+              <div class="super-stat-watermark">
+
+                @if (stat.icon === 'building') {
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 21h18M5 21V7l7-4v18M19 21V11l-7-4"/>
+                    <path d="M9 8h.01M9 12h.01M9 16h.01M15 12h.01M15 16h.01" stroke="white" stroke-width="2"/>
+                  </svg>
+                }
+
+                @if (stat.icon === 'users') {
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="9" cy="8" r="4"/>
+                    <circle cx="18" cy="8" r="3"/>
+                    <path d="M2 20c0-4 3-6 7-6s7 2 7 6v1H2z"/>
+                    <path d="M17 14c3 0 6 2 6 5v2h-5v-1c0-2-1-4-3-5z"/>
+                  </svg>
+                }
+
+                @if (stat.icon === 'shield') {
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2 3 6v6c0 5.5 3.8 9 9 11 5.2-2 9-5.5 9-11V6z"/>
+                  </svg>
+                }
+
+              </div>
+
             </div>
 
-            <span class="rounded-lg bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700">
-              This Month
-            </span>
+          }
+
+        </div>
+
+
+        <!-- ORGANIZATION DETAILS -->
+
+        <div class="super-organization-card">
+
+          <!-- ORGANIZATION HEADER -->
+
+          <div class="super-organization-header">
+
+            <div class="super-organization-title">
+
+              <div class="super-organization-icon">
+
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 21h18M5 21V7l7-4v18M19 21V11l-7-4"/>
+                  <path d="M9 8h.01M9 12h.01M9 16h.01M15 12h.01M15 16h.01"/>
+                </svg>
+
+              </div>
+
+              <div>
+
+                <h2>Organization Details</h2>
+
+                <p>
+                  List of all organizations created in the platform.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <!-- SEARCH -->
+
+            <div class="super-search-box">
+
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="7"/>
+                <path d="m16 16 5 5"/>
+              </svg>
+
+              <input
+                type="text"
+                placeholder="Search organizations..."
+                [(ngModel)]="organizationSearch"
+              />
+
+            </div>
+
           </div>
 
-          @if (attendanceTrend.length > 0) {
 
-            <div class="mt-8 flex h-56 items-end justify-around gap-2 overflow-x-auto border-b border-slate-100 pb-2">
+          <!-- ORGANIZATION LIST -->
 
-              @for (item of attendanceTrend; track item.date) {
+          @if (filteredOrganizations.length > 0) {
 
-                <div class="flex h-full min-w-8 flex-1 flex-col items-center justify-end gap-2">
+            <div class="super-organization-list">
 
-                  <span class="text-xs font-medium text-slate-500">
-                    {{ item.value }}%
-                  </span>
+              @for (org of filteredOrganizations; track org.id) {
 
-                  <div
-                    class="flex w-full max-w-12 items-end overflow-hidden rounded-t-md bg-blue-100"
-                    [style.height.%]="item.value">
+                <div class="super-organization-row">
 
-                    <div class="h-full w-full rounded-t-md bg-blue-600">
+                  <div class="super-org-name">
+
+                    <div class="super-org-small-icon">
+                      ▥
+                    </div>
+
+                    <div>
+
+                      <h3>{{ org.name }}</h3>
+
+                      <p>
+                        Created {{ org.createdAt | date:'mediumDate' }}
+                      </p>
+
                     </div>
 
                   </div>
 
-                  <span class="text-xs text-slate-500">
-                    {{ item.date.substring(8, 10) }}
-                  </span>
+                  <div class="super-org-status"
+                    [class.active]="org.status === 'ACTIVE'"
+                    [class.inactive]="org.status === 'INACTIVE'">
+
+                    {{ org.status }}
+
+                  </div>
 
                 </div>
 
@@ -131,167 +245,397 @@
 
           } @else {
 
-            <div class="py-16 text-center">
-              <p class="text-sm text-slate-400">
-                No attendance trend data available.
-              </p>
+
+            <!-- EMPTY STATE -->
+
+            <div class="super-empty-state">
+
+              <div class="super-empty-illustration">
+
+                <div class="super-empty-sun"></div>
+
+                <div class="super-empty-building">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
+
+                <div class="super-empty-small-building">
+                  <div></div>
+                  <div></div>
+                </div>
+
+                <div class="super-empty-tree left"></div>
+                <div class="super-empty-tree right"></div>
+
+                <div class="super-empty-ground"></div>
+
+              </div>
+
+
+              @if (organizationSearch) {
+
+                <h2>No Organizations Found</h2>
+
+                <p>
+                  Try searching with another organization name.
+                </p>
+
+              } @else {
+
+                <h2>No Organizations Yet</h2>
+
+                <p>
+                  You haven't added any organization to the platform.
+                </p>
+
+                <button
+                  type="button"
+                  class="super-primary-button empty-button"
+                  (click)="openCreateOrganization()">
+
+                  <span>＋</span>
+                  Add Organization
+
+                </button>
+
+              }
+
             </div>
 
           }
 
         </div>
 
-        <!-- Department Statistics -->
-        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        @if (organizationSuccessMessage) {
+          <div class="organization-success-message" role="status">
+            <span class="success-check">✓</span>
+            {{ organizationSuccessMessage }}
+            <button
+              type="button"
+              aria-label="Dismiss success message"
+              (click)="organizationSuccessMessage = ''">×</button>
+          </div>
+        }
 
-          <h3 class="font-semibold text-slate-800">
-            Department Attendance
-          </h3>
+        @if (showCreateOrganizationModal) {
+          <div
+            class="organization-modal-backdrop"
+            (click)="closeCreateOrganization()">
 
-          <p class="mt-1 text-xs text-slate-500">
-            Present employees by department
-          </p>
+            <section
+              class="organization-create-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="create-organization-title"
+              (click)="$event.stopPropagation()">
 
-          <div class="mt-6 space-y-5">
-
-            @for (department of departments; track department.name) {
-
-              <div>
-
-                <div class="mb-2 flex items-center justify-between gap-2">
-
-                  <span class="text-sm font-medium text-slate-700">
-                    {{ department.name }}
-                  </span>
-
-                  <span class="text-xs text-slate-500">
-                    {{ department.present }}/{{ department.total }}
-                  </span>
-
+              <div class="organization-modal-header">
+                <div>
+                  <h2 id="create-organization-title">Create Organization</h2>
+                  <p>Add a new organization to your AttendEase platform.</p>
                 </div>
 
-                <div class="h-2 overflow-hidden rounded-full bg-slate-100">
-
-                  <div
-                    class="h-full rounded-full bg-blue-600"
-                    [style.width.%]="department.percentage">
-                  </div>
-
-                </div>
-
+                <button
+                  type="button"
+                  class="organization-modal-close"
+                  aria-label="Close dialog"
+                  [disabled]="isSavingOrganization"
+                  (click)="closeCreateOrganization()">×</button>
               </div>
 
-            } @empty {
+              <form (ngSubmit)="createOrganization()" class="organization-create-form">
+                <div class="organization-form-group">
+                  <label for="organizationName">Organization Name <span>*</span></label>
+                  <input
+                    id="organizationName"
+                    type="text"
+                    name="organizationName"
+                    [(ngModel)]="newOrganizationName"
+                    minlength="2"
+                    maxlength="150"
+                    required
+                    autocomplete="organization"
+                    placeholder="Enter organization name"
+                    [disabled]="isSavingOrganization" />
+                  <small>Enter a name between 2 and 150 characters.</small>
+                </div>
 
-              <p class="text-sm text-slate-400">
-                No department data available.
-              </p>
+                @if (createOrganizationError) {
+                  <div class="organization-form-error" role="alert">
+                    {{ createOrganizationError }}
+                  </div>
+                }
 
-            }
+                <div class="organization-modal-actions">
+                  <button
+                    type="button"
+                    class="organization-cancel-button"
+                    [disabled]="isSavingOrganization"
+                    (click)="closeCreateOrganization()">Cancel</button>
 
+                  <button
+                    type="submit"
+                    class="organization-submit-button"
+                    [disabled]="isSavingOrganization || newOrganizationName.trim().length < 2">
+                    @if (isSavingOrganization) {
+                      <span class="organization-button-spinner"></span>
+                      Creating...
+                    } @else {
+                      <span>＋</span>
+                      Create Organization
+                    }
+                  </button>
+                </div>
+              </form>
+            </section>
+          </div>
+        }
+
+      </div>
+
+    } @else {
+
+
+      <!-- ================================== -->
+      <!-- ADMIN DASHBOARD -->
+      <!-- ================================== -->
+
+      @if (isAdmin) {
+
+        <section class="admin-dashboard">
+
+          <!-- PAGE HEADING -->
+          <div class="admin-page-heading">
+            <div>
+              <h2>Company <span>Overview</span></h2>
+              <p>Monitor company-wide workforce and attendance performance.</p>
+            </div>
           </div>
 
-        </div>
+          <!-- SUMMARY CARDS -->
+          <div class="admin-summary-grid">
+            @for (card of summaryCards; track card.title) {
+              <article class="admin-summary-card"
+                [class.admin-card-blue]="card.color === 'blue'"
+                [class.admin-card-purple]="card.color === 'purple'"
+                [class.admin-card-green]="card.color === 'green'">
 
-      </div>
+                <div class="admin-summary-top">
+                  <p>{{ card.title }}</p>
 
-    }
+                  <span class="admin-summary-icon">
+                    @if (card.title === 'Total Admins') {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                      </svg>
+                    } @else if (card.title === 'Total Employees') {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                      </svg>
+                    } @else if (card.title === 'Present Today') {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m5 12 4 4L19 6"/>
+                      </svg>
+                    } @else {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 3v18h18"/>
+                        <path d="m19 9-5 5-4-4-5 5"/>
+                      </svg>
+                    }
+                  </span>
+                </div>
 
-    <!-- EMPLOYEE DASHBOARD -->
-    @if (isEmployee) {
+                <h3>{{ card.value }}</h3>
+                <p class="admin-summary-caption">{{ card.change }}</p>
+              </article>
+            }
+          </div>
 
-      <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <!-- ANALYTICS -->
+          <div class="admin-analytics-grid">
 
-        <!-- Table Heading -->
-        <div class="border-b border-slate-100 p-5">
+            <!-- ATTENDANCE OVERVIEW -->
+            <section class="admin-panel admin-attendance-panel">
+              <div class="admin-panel-heading">
+                <div>
+                  <h3>Attendance Overview</h3>
+                  <p>Daily attendance percentage for the selected month</p>
+                </div>
+                <span class="admin-period-label">This Month</span>
+              </div>
 
-          <h3 class="font-semibold text-slate-800">
-            My Recent Attendance
-          </h3>
-
-          <p class="mt-1 text-xs text-slate-500">
-            Your latest attendance records
-          </p>
-
-        </div>
-
-        <!-- Attendance Table -->
-        <div class="overflow-x-auto">
-
-          <table class="w-full min-w-[650px] text-left">
-
-            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
-
-              <tr>
-                <th class="px-5 py-4 font-semibold">Date</th>
-                <th class="px-5 py-4 font-semibold">Punch In</th>
-                <th class="px-5 py-4 font-semibold">Punch Out</th>
-                <th class="px-5 py-4 font-semibold">Work Hours</th>
-                <th class="px-5 py-4 font-semibold">Status</th>
-              </tr>
-
-            </thead>
-
-            <tbody class="divide-y divide-slate-100">
-
-              @for (record of recentAttendance; track record.date) {
-
-                <tr class="hover:bg-slate-50">
-
-                  <td class="px-5 py-4 text-sm font-medium text-slate-700">
-                    {{ record.date }}
-                  </td>
-
-                  <td class="px-5 py-4 text-sm text-slate-600">
-                    {{ record.punchIn }}
-                  </td>
-
-                  <td class="px-5 py-4 text-sm text-slate-600">
-                    {{ record.punchOut }}
-                  </td>
-
-                  <td class="px-5 py-4 text-sm text-slate-600">
-                    {{ record.workHours }}
-                  </td>
-
-                  <td class="px-5 py-4">
-
-                    <span
-                      class="rounded-full px-3 py-1 text-xs font-medium"
-                      [class.bg-green-50]="record.status === 'PRESENT'"
-                      [class.text-green-700]="record.status === 'PRESENT'"
-                      [class.bg-red-50]="record.status === 'ABSENT'"
-                      [class.text-red-700]="record.status === 'ABSENT'"
-                      [class.bg-yellow-50]="record.status === 'LATE'"
-                      [class.text-yellow-700]="record.status === 'LATE'"
-                      [class.bg-purple-50]="record.status === 'HALF_DAY'"
-                      [class.text-purple-700]="record.status === 'HALF_DAY'">
-
-                      {{ record.status.replace('_', ' ') }}
-
-                    </span>
-
-                  </td>
-
-                </tr>
-
-              } @empty {
-
-                <tr>
-                  <td colspan="5" class="px-5 py-10 text-center text-sm text-slate-400">
-                    No attendance records found.
-                  </td>
-                </tr>
-
+              @if (attendanceTrend.length > 0) {
+                <div class="admin-chart">
+                  @for (item of attendanceTrend; track item.date) {
+                    <div class="admin-chart-column">
+                      <span class="admin-chart-value">{{ item.value }}%</span>
+                      <div class="admin-chart-track">
+                        <div class="admin-chart-bar"
+                          [style.height.%]="item.value">
+                        </div>
+                      </div>
+                      <span class="admin-chart-date">{{ item.date.substring(8, 10) }}</span>
+                    </div>
+                  }
+                </div>
+                <div class="admin-chart-legend">
+                  <span><i></i> Attendance rate</span>
+                </div>
+              } @else {
+                <div class="admin-chart-empty">
+                  <div class="admin-chart-empty-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                      <path d="M3 3v18h18"/>
+                      <path d="m19 9-5 5-4-4-5 5"/>
+                    </svg>
+                  </div>
+                  <p>No attendance trend data available.</p>
+                  <span>Attendance activity will appear here once records are available.</span>
+                </div>
               }
+            </section>
 
-            </tbody>
+            <!-- DEPARTMENT ATTENDANCE -->
+            <section class="admin-panel admin-department-panel">
+              <div class="admin-panel-heading">
+                <div>
+                  <h3>Department Attendance</h3>
+                  <p>Present employees by department</p>
+                </div>
+              </div>
 
-          </table>
+              @if (departments.length > 0) {
+                <div class="admin-department-list">
+                  @for (department of departments; track department.name) {
+                    <div class="admin-department-item">
+                      <div class="admin-department-meta">
+                        <span>{{ department.name }}</span>
+                        <strong>{{ department.present }}/{{ department.total }}</strong>
+                      </div>
+                      <div class="admin-progress-track">
+                        <div class="admin-progress-fill"
+                          [style.width.%]="department.percentage">
+                        </div>
+                      </div>
+                      <div class="admin-department-percent">
+                        {{ department.percentage }}% present
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="admin-department-empty">
+                  <div class="admin-department-empty-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                      <rect x="3" y="4" width="18" height="16" rx="2"/>
+                      <path d="M8 8h8M8 12h8M8 16h4"/>
+                    </svg>
+                  </div>
+                  <p>No department data available.</p>
+                  <span>Department attendance will appear here when data is available.</span>
+                </div>
+              }
+            </section>
 
-        </div>
+          </div>
+        </section>
 
-      </div>
+      } @else if (isEmployee) {
+
+        <!-- ================================== -->
+        <!-- EMPLOYEE DASHBOARD: screenshot-matched, role scoped -->
+        <section class="employee-dashboard">
+          <header class="employee-page-heading">
+            <h2>My <span>Dashboard</span></h2>
+            <p>Welcome back, {{ employeeName }}. Here's your attendance summary.</p>
+          </header>
+
+          <div class="employee-summary-grid">
+            @for (card of summaryCards; track card.title) {
+              <article class="employee-summary-card" [class.employee-green]="card.title === 'Present Days'"
+                [class.employee-orange]="card.title === 'Late Days'" [class.employee-rate]="card.title === 'Attendance Rate'">
+                <div class="employee-summary-top">
+                  <h3>{{ card.title }}</h3>
+                  <span class="employee-summary-icon" aria-hidden="true">
+                    @if (card.title === 'Recorded Days') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg> }
+                    @else if (card.title === 'Present Days') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m4 12 5 5L20 6"/></svg> }
+                    @else if (card.title === 'Late Days') { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 8v5l3 2M5 2 2 5M19 2l3 3"/></svg> }
+                    @else { <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16M8 15l4-5 3 2 5-6"/></svg> }
+                  </span>
+                </div>
+                <strong>{{ card.value }}</strong>
+                <p>{{ card.change }}</p>
+              </article>
+            }
+          </div>
+
+          <section class="employee-attendance-panel">
+            <nav class="employee-view-switch" aria-label="Attendance view">
+              <button type="button" [class.active]="employeeView === 'daily'" (click)="setEmployeeView('daily')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg> Daily View
+              </button>
+              <button type="button" [class.active]="employeeView === 'monthly'" (click)="setEmployeeView('monthly')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg> Monthly View
+              </button>
+            </nav>
+
+            <div class="employee-details-grid">
+              <section class="employee-inner-card">
+                <div class="employee-card-heading employee-history-heading">
+                  <div><h3>My Attendance History</h3><p>Attendance trend for the selected period.</p></div>
+                  <label class="employee-date-filter">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>
+                    <input type="month" aria-label="Select attendance month" [(ngModel)]="employeeSelectedMonth" />
+                  </label>
+                </div>
+                <div class="employee-chart" role="img" aria-label="Attendance counts by status">
+                  @for (bar of employeeChartBars; track bar.status) {
+                    <div class="employee-chart-column" [class.employee-bar-present]="bar.status === 'Present'"
+                      [class.employee-bar-late]="bar.status === 'Late'" [class.employee-bar-absent]="bar.status === 'Absent'"
+                      [class.employee-bar-half]="bar.status === 'Half Day'">
+                      <strong>{{ bar.count }}</strong>
+                      <div class="employee-chart-track"><div class="employee-chart-fill" [style.height.%]="bar.percent"></div></div>
+                      <span>{{ bar.status }}</span>
+                    </div>
+                  }
+                </div>
+                <p class="employee-data-note">Chart uses attendance records available from your dashboard API.</p>
+              </section>
+
+              <section class="employee-inner-card">
+                <div class="employee-card-heading"><h3>My Attendance Records</h3><p>Your attendance details for the selected period.</p></div>
+                @if (employeeView === 'monthly') {
+                  <div class="employee-monthly-summary">Showing {{ employeeFilteredAttendance.length }} available records for {{ employeeSelectedMonth || 'all months' }}.</div>
+                }
+                <div class="employee-table-wrap">
+                  <table class="employee-record-table">
+                    <thead><tr><th>Date</th><th>Punch In</th><th>Punch Out</th><th>Work Hours</th><th>Status</th></tr></thead>
+                    <tbody>
+                      @for (record of employeeFilteredAttendance; track record.date) {
+                        <tr><td>{{ record.date }}</td><td>{{ record.punchIn }}</td><td>{{ record.punchOut }}</td><td>{{ record.workHours }}</td>
+                          <td><span class="employee-status" [class.present]="record.status === 'PRESENT'"
+                            [class.late]="record.status === 'LATE'" [class.absent]="record.status === 'ABSENT'"
+                            [class.half]="record.status === 'HALF_DAY'">{{ record.status.replace('_', ' ') }}</span></td></tr>
+                      } @empty {
+                        <tr><td colspan="5" class="employee-empty-records">No attendance records available for this period.</td></tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+          </section>
+        </section>
+
+      }
 
     }
 

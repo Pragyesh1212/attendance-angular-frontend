@@ -1,8 +1,9 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { FeedbackHost } from './shared/feedback/feedback-host';
 
 @Component({
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, FeedbackHost],
   selector: 'app-root',
   styleUrl: './app.css',
   templateUrl: './app.html',

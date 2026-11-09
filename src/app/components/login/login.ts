@@ -1,3 +1,4 @@
+import { FeedbackService } from '../../shared/feedback/feedback.service';
 
 import { Component, inject } from '@angular/core';
 
@@ -18,6 +19,15 @@ import { Auth } from '../../services/auth';
   styleUrl: './login.css',
 })
 export class Login {
+  private readonly uiFeedback = inject(FeedbackService);
+
+  // Centralized notification: the old inline banner reads an empty value.
+  // The original assignments still work and now open AttendEase feedback.
+  get errorMessage(): string { return ''; }
+  set errorMessage(value: string) {
+    if (value) this.uiFeedback.error(value);
+  }
+
 
   private fb = inject(FormBuilder);
   private authService = inject(Auth);
@@ -26,7 +36,7 @@ export class Login {
   showPassword = false;
   submitted = false;
   isLoading = false;
-  errorMessage = '';
+  
 
   loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -59,11 +69,11 @@ export class Login {
 
         const role = response.user.role;
 
-        if (
-          role === 'SUPER_ADMIN' ||
-          role === 'ADMIN' ||
-          role === 'EMPLOYEE'
-        ) {
+        if (role === 'EMPLOYEE') {
+          // Employees begin at Attendance for quick punch in/out.
+          this.router.navigate(['/attendance']);
+        } else if (role === 'SUPER_ADMIN' || role === 'ADMIN') {
+          // Preserve the existing dashboards for both admin roles.
           this.router.navigate(['/dashboard']);
         } else {
           this.authService.clearSession();

@@ -1,5 +1,5 @@
 
-<div class="flex min-h-screen bg-slate-50">
+<div class="flex min-h-screen bg-[#f3f7ff]">
 
   <!-- Mobile Overlay -->
   @if (mobileMenuOpen) {
@@ -11,19 +11,21 @@
 
   <!-- Sidebar -->
   <aside
-    class="fixed inset-y-0 left-0 z-50 flex flex-col border-r border-slate-200 bg-white transition-all duration-300 lg:fixed lg:translate-x-0"
+    class="fixed inset-y-0 left-0 z-50 flex flex-col border-r border-slate-200 bg-white transition-all duration-300"
     [class.w-64]="!sidebarCollapsed"
     [class.w-20]="sidebarCollapsed"
     [class.-translate-x-full]="!mobileMenuOpen"
     [class.translate-x-0]="mobileMenuOpen"
     [class.lg:w-64]="!sidebarCollapsed"
-    [class.lg:w-20]="sidebarCollapsed">
+    [class.lg:w-20]="sidebarCollapsed"
+    [class.lg:translate-x-0]="true">
 
     <!-- Brand -->
-    <div class="flex h-20 items-center justify-between border-b border-slate-100 px-5">
+    <div class="flex h-[90px] items-center justify-between border-b border-slate-100 px-5">
 
       <a routerLink="/" class="flex items-center gap-3 overflow-hidden">
-        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-xl font-bold text-white">
+
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-2xl font-bold text-white shadow-sm">
           ✓
         </span>
 
@@ -32,6 +34,7 @@
             Attend<span class="text-blue-600">Ease</span>
           </span>
         }
+
       </a>
 
       <button
@@ -40,57 +43,48 @@
         class="text-slate-500 lg:hidden">
         ✕
       </button>
+
     </div>
 
     <!-- Navigation -->
     <nav class="flex-1 space-y-2 overflow-y-auto px-3 py-6">
 
-      <p class="px-3 pb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+      <p class="px-3 pb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
         @if (!sidebarCollapsed) {
-          Main Menu
+          MAIN
         }
       </p>
 
-      <!-- Dashboard: All Roles -->
+      <!-- Dashboard -->
       <a
         routerLink="/dashboard"
         routerLinkActive="bg-blue-50 text-blue-700"
         [routerLinkActiveOptions]="{ exact: true }"
         (click)="closeMobileMenu()"
-        class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">
+        class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700">
 
-        <span class="text-lg">▦</span>
+        <span class="text-xl">⌂</span>
 
         @if (!sidebarCollapsed) {
           <span>Dashboard</span>
         }
+
       </a>
 
-      <!-- Employees: SUPER_ADMIN, ADMIN -->
+      <!-- Employees -->
       @if (hasRole('SUPER_ADMIN', 'ADMIN')) {
         <a
           routerLink="/employees"
           routerLinkActive="bg-blue-50 text-blue-700"
           (click)="closeMobileMenu()"
-          class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">
+          class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700">
 
-          <span class="text-lg">♙</span>
+          <span class="text-xl">♙</span>
 
           @if (!sidebarCollapsed) {
             <span>Employees</span>
           }
-        </a>
-      }
 
-      <!-- Organization Management: SUPER_ADMIN only -->
-      @if (hasRole('SUPER_ADMIN')) {
-        <a
-          routerLink="/organizations"
-          routerLinkActive="bg-blue-50 text-blue-700"
-          (click)="closeMobileMenu()"
-          class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">
-          <span class="text-lg">▦</span>
-          @if (!sidebarCollapsed) { <span>Organizations</span> }
         </a>
       }
 
@@ -100,121 +94,105 @@
           routerLink="/admins"
           routerLinkActive="bg-blue-50 text-blue-700"
           (click)="closeMobileMenu()"
-          class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">
+          class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700">
 
-          <span class="text-lg">♟</span>
+          <span class="text-xl">⬡</span>
 
           @if (!sidebarCollapsed) {
             <span>Admin Management</span>
           }
+
         </a>
       }
 
-      @if (!hasRole('SUPER_ADMIN')) {
+      <!-- ADMIN-ONLY ORGANIZATION SETTINGS -->
+      @if (hasRole('ADMIN')) {
 
-      <!-- Departments: SUPER_ADMIN, ADMIN -->
-      @if (hasRole('SUPER_ADMIN', 'ADMIN')) {
         <a
           routerLink="/departments"
           routerLinkActive="bg-blue-50 text-blue-700"
           (click)="closeMobileMenu()"
-          class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">
+          class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700">
 
-          <span class="text-lg">▤</span>
+          <span class="text-xl">▤</span>
 
           @if (!sidebarCollapsed) {
             <span>Departments</span>
           }
-        </a>
-      }
 
-      <!-- Shifts: SUPER_ADMIN, ADMIN -->
-      @if (hasRole('SUPER_ADMIN', 'ADMIN')) {
+        </a>
+
         <a
           routerLink="/shifts"
           routerLinkActive="bg-blue-50 text-blue-700"
           (click)="closeMobileMenu()"
-          class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">
+          class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700">
 
-          <span class="text-lg">◷</span>
+          <span class="text-xl">◷</span>
 
           @if (!sidebarCollapsed) {
             <span>Shifts</span>
           }
-        </a>
-      }
 
-      <!-- Work Locations: SUPER_ADMIN, ADMIN -->
-      @if (hasRole('SUPER_ADMIN', 'ADMIN')) {
+        </a>
+
         <a
           routerLink="/work-locations"
           routerLinkActive="bg-blue-50 text-blue-700"
           (click)="closeMobileMenu()"
-          class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">
+          class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700">
 
-          <span class="text-lg">⌖</span>
+          <span class="text-xl">⌖</span>
 
           @if (!sidebarCollapsed) {
             <span>Work Locations</span>
           }
+
         </a>
       }
 
-      <div class="my-4 border-t border-slate-100"></div>
+      <!-- Attendance: ADMIN and EMPLOYEE -->
+      @if (hasRole('ADMIN', 'EMPLOYEE')) {
 
-      <!-- Attendance Section -->
-      <p class="px-3 pb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-        @if (!sidebarCollapsed) {
-          Attendance
-        }
-      </p>
-
-      <!-- Attendance: All Roles -->
-      <a
-        routerLink="/attendance"
-        routerLinkActive="bg-blue-50 text-blue-700"
-        (click)="closeMobileMenu()"
-        class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">
-
-        <span class="text-lg">✓</span>
+        <div class="my-4 border-t border-slate-100"></div>
 
         @if (!sidebarCollapsed) {
-          <span>Attendance</span>
+          <p class="px-3 pb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+            ATTENDANCE
+          </p>
         }
-      </a>
 
-      <!-- Approvals: SUPER_ADMIN, ADMIN -->
-      @if (hasRole('SUPER_ADMIN', 'ADMIN')) {
+        <a
+          routerLink="/attendance"
+          routerLinkActive="bg-blue-50 text-blue-700"
+          (click)="closeMobileMenu()"
+          class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700">
+
+          <span class="text-xl">✓</span>
+
+          @if (!sidebarCollapsed) {
+            <span>Attendance</span>
+          }
+
+        </a>
+      }
+
+      <!-- Approvals: ADMIN only -->
+      @if (hasRole('ADMIN')) {
+
         <a
           routerLink="/approvals"
           routerLinkActive="bg-blue-50 text-blue-700"
           (click)="closeMobileMenu()"
-          class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">
+          class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700">
 
-          <span class="text-lg">☑</span>
+          <span class="text-xl">☑</span>
 
           @if (!sidebarCollapsed) {
             <span>Approvals</span>
           }
+
         </a>
-      }
-
-      <div class="my-4 border-t border-slate-100"></div>
-
-      <!-- Notifications: All Roles -->
-      <!-- <a
-        routerLink="/notifications"
-        routerLinkActive="bg-blue-50 text-blue-700"
-        (click)="closeMobileMenu()"
-        class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-blue-700">
-
-        <span class="text-lg">♧</span>
-
-        @if (!sidebarCollapsed) {
-          <span>Notifications</span>
-        }
-      </a> -->
-
       }
 
     </nav>
@@ -222,43 +200,56 @@
     <!-- Sidebar Footer -->
     <div class="border-t border-slate-100 p-4">
 
-      <!-- User Information -->
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2">
 
-        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700">
+        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700">
           {{ userInitial }}
         </div>
 
         @if (!sidebarCollapsed) {
-          <div class="min-w-0">
-            <p class="truncate text-sm font-bold text-slate-800">
+
+          <div class="min-w-0 flex-1">
+
+            <p class="truncate text-sm font-bold text-slate-900">
               {{ userName }}
             </p>
 
             <p class="text-xs text-slate-500">
               {{ roleName }}
             </p>
+
           </div>
+
         }
+
+        <button
+          type="button"
+          (click)="logout()"
+          [disabled]="isLoggingOut"
+          title="Logout"
+          aria-label="Logout"
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-700 disabled:opacity-50">
+
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="21"
+            height="21"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+
+          </svg>
+
+        </button>
 
       </div>
-
-      <!-- Logout Button -->
-      <button
-        type="button"
-        (click)="logout()"
-        [disabled]="isLoggingOut"
-        class="mt-4 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60">
-
-        <span class="text-lg">↪</span>
-
-        @if (!sidebarCollapsed) {
-          <span>
-            {{ isLoggingOut ? 'Signing out...' : 'Logout' }}
-          </span>
-        }
-
-      </button>
 
     </div>
 
@@ -271,63 +262,56 @@
     [class.lg:ml-20]="sidebarCollapsed">
 
     <!-- Top Navbar -->
-    <header class="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-200 bg-white px-4 sm:px-6 lg:px-8">
+    <header class="sticky top-0 z-30 flex h-[90px] items-center justify-between border-b border-slate-200 bg-white px-4 sm:px-6 lg:px-8">
 
       <div class="flex items-center gap-4">
 
-        <!-- Desktop Sidebar Toggle -->
         <button
           type="button"
           (click)="toggleSidebar()"
-          class="hidden h-10 w-10 items-center justify-center rounded-lg text-xl text-slate-600 hover:bg-slate-100 lg:flex">
+          class="hidden h-10 w-10 items-center justify-center rounded-lg text-xl text-slate-700 hover:bg-slate-100 lg:flex">
           ☰
         </button>
 
-        <!-- Mobile Menu Toggle -->
         <button
           type="button"
           (click)="toggleMobileMenu()"
-          class="flex h-10 w-10 items-center justify-center rounded-lg text-xl text-slate-600 hover:bg-slate-100 lg:hidden">
+          class="flex h-10 w-10 items-center justify-center rounded-lg text-xl text-slate-700 hover:bg-slate-100 lg:hidden">
           ☰
         </button>
 
         <div>
-          <h1 class="text-lg font-bold text-slate-900">Dashboard</h1>
+
+          <h1 class="text-xl font-bold text-slate-900">
+            Dashboard
+          </h1>
 
           <p class="hidden text-xs text-slate-500 sm:block">
-            Welcome to AttendEase
+            Welcome back, {{ roleName }}!
           </p>
+
         </div>
 
       </div>
 
+      <!-- User Information -->
       <div class="flex items-center gap-3">
 
-        <!-- Notifications -->
-        <button
-          type="button"
-          routerLink="/notifications"
-          class="relative flex h-10 w-10 items-center justify-center rounded-full text-xl text-slate-600 hover:bg-slate-100">
-
-          ♧
-
-          <span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
-        </button>
-
-        <!-- User Information -->
-        <div class="flex items-center gap-2 border-l border-slate-200 pl-3">
+        <div class="flex items-center gap-3 border-l border-slate-200 pl-4">
 
           <div class="hidden text-right sm:block">
-            <p class="text-sm font-bold text-slate-800">
+
+            <p class="text-sm font-bold text-slate-900">
               {{ userName }}
             </p>
 
             <p class="text-xs text-slate-500">
               {{ roleName }}
             </p>
+
           </div>
 
-          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-bold text-white">
+          <div class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-lg font-bold text-white shadow-sm">
             {{ userInitial }}
           </div>
 
