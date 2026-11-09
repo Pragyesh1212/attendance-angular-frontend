@@ -163,14 +163,27 @@ export class EmployeeService {
   }
 
   /**
-   * Backend contract required: DELETE /users/employees/:employeeId
-   * must perform SOFT deletion (set status to INACTIVE), not erase
-   * the employee or their attendance history.
+   * Soft-deactivate an employee. Their profile and attendance history remain
+   * stored; the backend sets UserStatus.INACTIVE and clears the refresh token.
    */
-  deleteEmployee(employeeId: string): Observable<any> {
-    return this.http.delete(
-      `${this.apiUrl}/users/employees/${encodeURIComponent(employeeId)}`
+  deactivateEmployee(employeeId: string): Observable<any> {
+    return this.http.patch(
+      `${this.apiUrl}/users/employees/${encodeURIComponent(employeeId)}/deactivate`,
+      {}
     );
+  }
+
+  /** Reactivate a previously deactivated employee (ADMIN only). */
+  reactivateEmployee(employeeId: string): Observable<any> {
+    return this.http.patch(
+      `${this.apiUrl}/users/employees/${encodeURIComponent(employeeId)}/reactivate`,
+      {}
+    );
+  }
+
+  /** Keep the existing method name for any older components that call it. */
+  deleteEmployee(employeeId: string): Observable<any> {
+    return this.deactivateEmployee(employeeId);
   }
 
   getDepartments(): Observable<any> {

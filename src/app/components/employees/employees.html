@@ -475,10 +475,17 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
                   </button>
 
-                  <button type="button" (click)="openDeleteModal(employee)" title="Deactivate employee" aria-label="Deactivate employee"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-white text-red-700 transition hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 10v6M14 10v6"/></svg>
-                  </button>
+                  @if (employee.status === 'ACTIVE') {
+                    <button type="button" (click)="openDeleteModal(employee)" title="Deactivate employee" aria-label="Deactivate employee"
+                      class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-white text-red-700 transition hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 10v6M14 10v6"/></svg>
+                    </button>
+                  } @else if (employee.status === 'INACTIVE') {
+                    <button type="button" (click)="openDeleteModal(employee)" title="Reactivate employee" aria-label="Reactivate employee"
+                      class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-200 bg-white text-emerald-700 transition hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M4.93 9a8 8 0 0 1 13.31-2.37L20 12"/><path d="M4 17v-5h5"/><path d="M19.07 15a8 8 0 0 1-13.31 2.37L4 12"/></svg>
+                    </button>
+                  }
 
                 </div>
 
@@ -900,23 +907,31 @@
   </div>
 </div>
 
-<!-- Admin only: custom deactivate employee confirmation -->
+<!-- Admin only: custom deactivate/reactivate employee confirmation -->
 <div *ngIf="!isSuperAdmin && showDeleteModal" class="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/60 p-4" role="presentation">
   <div role="alertdialog" aria-modal="true" aria-labelledby="deactivate-employee-title" aria-describedby="deactivate-employee-description" class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
     <div class="px-6 pt-6 pb-4">
-      <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600">
-        <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 10v6M14 10v6"/></svg>
+      <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full" [ngClass]="isReactivatingEmployee ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'">
+        @if (isReactivatingEmployee) {
+          <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M4.93 9a8 8 0 0 1 13.31-2.37L20 12"/><path d="M4 17v-5h5"/><path d="M19.07 15a8 8 0 0 1-13.31 2.37L4 12"/></svg>
+        } @else {
+          <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 10v6M14 10v6"/></svg>
+        }
       </div>
-      <h2 id="deactivate-employee-title" class="text-xl font-bold text-slate-900">Deactivate employee?</h2>
+      <h2 id="deactivate-employee-title" class="text-xl font-bold text-slate-900">{{ isReactivatingEmployee ? 'Reactivate employee?' : 'Deactivate employee?' }}</h2>
       <p id="deactivate-employee-description" class="mt-2 text-sm leading-6 text-slate-600">
-        Are you sure you want to deactivate <span class="font-semibold text-slate-900">{{ employeeToDelete ? getFullName(employeeToDelete) : '' }}</span>?
-        Their attendance history should remain preserved. They will no longer be active.
+        Are you sure you want to {{ isReactivatingEmployee ? 'reactivate' : 'deactivate' }} <span class="font-semibold text-slate-900">{{ employeeToDelete ? getFullName(employeeToDelete) : '' }}</span>?
+        {{ isReactivatingEmployee ? 'They will become active again. Their previous attendance history is preserved.' : 'Their attendance history will remain preserved. They will no longer be active.' }}
       </p>
       <div *ngIf="deleteErrorMessage" role="alert" class="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ deleteErrorMessage }}</div>
     </div>
     <div class="flex justify-end gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4">
       <button type="button" (click)="closeDeleteModal()" [disabled]="deletingEmployee" class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50">Cancel</button>
-      <button type="button" (click)="confirmDeleteEmployee()" [disabled]="deletingEmployee" class="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50">{{ deletingEmployee ? 'Deactivating...' : 'Deactivate Employee' }}</button>
+      <button type="button" (click)="confirmDeleteEmployee()" [disabled]="deletingEmployee"
+        class="rounded-lg px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+        [ngClass]="isReactivatingEmployee ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'">
+        {{ deletingEmployee ? (isReactivatingEmployee ? 'Reactivating...' : 'Deactivating...') : (isReactivatingEmployee ? 'Reactivate Employee' : 'Deactivate Employee') }}
+      </button>
     </div>
   </div>
 </div>

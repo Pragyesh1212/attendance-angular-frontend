@@ -105,6 +105,11 @@ export class Employees implements OnInit {
   deletingEmployee = false;
   deleteErrorMessage = '';
 
+  // The existing confirmation dialog handles both deactivation and reactivation.
+  get isReactivatingEmployee(): boolean {
+    return this.employeeToDelete?.status === 'INACTIVE';
+  }
+
   // Employee modal
   showAddModal = false;
   isEditMode = false;
@@ -893,9 +898,10 @@ export class Employees implements OnInit {
   }
 
   // ==========================================
-  // DEACTIVATE EMPLOYEE (ADMIN ONLY)
+  // DEACTIVATE / REACTIVATE EMPLOYEE (ADMIN ONLY)
   // ==========================================
 
+  // Keep the existing method names to avoid changing other callers or features.
   openDeleteModal(employee: Employee): void {
     if (this.isSuperAdmin || this.deletingEmployee) return;
     this.employeeToDelete = employee;
@@ -914,10 +920,15 @@ export class Employees implements OnInit {
     if (this.isSuperAdmin || this.deletingEmployee || !this.employeeToDelete) return;
 
     const employeeId = this.employeeToDelete.id;
+    const reactivating = this.employeeToDelete.status === 'INACTIVE';
     this.deletingEmployee = true;
     this.deleteErrorMessage = '';
 
-    this.employeeService.deleteEmployee(employeeId)
+    const request$ = reactivating
+      ? this.employeeService.reactivateEmployee(employeeId)
+      : this.employeeService.deactivateEmployee(employeeId);
+
+    request$
       .pipe(finalize(() => {
         this.deletingEmployee = false;
         this.cdr.detectChanges();
@@ -926,16 +937,23 @@ export class Employees implements OnInit {
         next: (response: any) => {
           this.showDeleteModal = false;
           this.employeeToDelete = null;
-          this.successMessage = response?.message || 'Employee deactivated successfully.';
-          // If the last record on a page was removed, go back one page.
-          if (this.employees.length === 1 && this.currentPage > 1) {
+          this.successMessage = response?.message || (reactivating
+            ? 'Employee reactivated successfully.'
+            : 'Employee deactivated successfully.');
+
+          // Move back only when the active status filter excludes this employee.
+          const filteredOut = reactivating
+            ? this.statusFilter === 'INACTIVE'
+            : this.statusFilter === 'ACTIVE';
+          if (filteredOut && this.employees.length === 1 && this.currentPage > 1) {
             this.currentPage--;
           }
           this.loadEmployees();
         },
         error: (error) => {
-          this.deleteErrorMessage = error.error?.message ||
-            'Unable to deactivate employee. Check that the backend supports soft deletion.';
+          this.deleteErrorMessage = error.error?.message || (reactivating
+            ? 'Unable to reactivate employee. Please try again.'
+            : 'Unable to deactivate employee. Please try again.');
         }
       });
   }
