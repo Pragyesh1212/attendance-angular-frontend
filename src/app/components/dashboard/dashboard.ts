@@ -118,6 +118,11 @@ export class Dashboard implements OnInit {
 
   attendanceTrend: AttendanceTrend[] = [];
 
+  // The overview and monthly-trend APIs finish independently.
+  // Keep the raw trend until we know the active employee count for this Admin.
+  private adminActiveEmployeeCount: number | null = null;
+  private adminMonthlyTrendRaw: any[] = [];
+
   departments: Department[] = [];
 
   recentAttendance: RecentAttendance[] = [];
@@ -411,6 +416,34 @@ export class Dashboard implements OnInit {
   // ADMIN DASHBOARD
   // ==========================================
 
+  // Use the same attendance-rate denominator as the overview card:
+  // all active employees in this Admin's organization (not only employees
+  // with attendance records). Recalculate when either API finishes, so the
+  // result does not depend on which HTTP response arrives first.
+  private updateAdminAttendanceTrend(): void {
+    const activeEmployees = this.adminActiveEmployeeCount ?? 0;
+
+    this.attendanceTrend = this.adminMonthlyTrendRaw.map((item: any) => {
+      const attended =
+        Number(item.present ?? 0) +
+        Number(item.late ?? 0) +
+        Number(item.halfDay ?? 0);
+
+      // Allows a future backend version to return per-date headcounts,
+      // without requiring this UI calculation to change again.
+      const eligibleEmployees = Number(item.totalEmployees ?? activeEmployees);
+
+      return {
+        ...item,
+        value: eligibleEmployees > 0
+          ? Number((Math.min(attended / eligibleEmployees, 1) * 100).toFixed(2))
+          : 0,
+      };
+    });
+
+    this.cdr.markForCheck();
+  }
+
   private loadAdminDashboard(): void {
 
     const now = new Date();
@@ -446,6 +479,9 @@ export class Dashboard implements OnInit {
         next: (data) => {
 
           const attendance = data.attendance;
+
+          this.adminActiveEmployeeCount = Number(data.totalEmployees ?? 0);
+          this.updateAdminAttendanceTrend();
 
           this.summaryCards = [
 
@@ -511,32 +547,8 @@ export class Dashboard implements OnInit {
             ? data.trend
             : [];
 
-          this.attendanceTrend = trend.map((item: any) => {
-
-            const total =
-              item.present +
-              item.late +
-              item.absent +
-              item.halfDay +
-              item.onLeave;
-
-            const attended =
-              item.present +
-              item.late +
-              item.halfDay;
-
-            return {
-              ...item,
-              value: total > 0
-                ? Number(
-                    ((attended / total) * 100).toFixed(1)
-                  )
-                : 0
-            };
-
-          });
-
-          this.cdr.markForCheck();
+          this.adminMonthlyTrendRaw = trend;
+          this.updateAdminAttendanceTrend();
 
         },
 
