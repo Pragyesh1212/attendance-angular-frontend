@@ -750,6 +750,8 @@ export class Employees implements OnInit {
     this.employeeService.createEmployee(payload).subscribe({
       next: (response: any) => {
         const createdEmployeeId =
+          response?.employee?.id ||
+          response?.data?.employee?.id ||
           response?.data?.id ||
           response?.data?.user?.id ||
           response?.id;
