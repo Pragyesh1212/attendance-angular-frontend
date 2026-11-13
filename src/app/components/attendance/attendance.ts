@@ -246,6 +246,68 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     ).length;
   }
 
+  // Monthly table and graph share the exact same selected-month API data.
+  // Count only persisted statuses; do not infer ABSENT from missing dates.
+  get employeeMonthRecords(): AttendanceRecord[] {
+    const selectedMonth = this.monthStart.slice(0, 7);
+    return this.monthlyRecords
+      .filter(record => (record.workDate || '').slice(0, 7) === selectedMonth)
+      .slice()
+      .sort((a, b) => (b.workDate || '').localeCompare(a.workDate || ''));
+  }
+
+  get employeeStatusBars(): { key: string; label: string; count: number; percent: number }[] {
+    const records = this.employeeMonthRecords;
+    const bars = [
+      { key: 'present', label: 'Present', code: 'PRESENT' },
+      { key: 'late', label: 'Late', code: 'LATE' },
+      { key: 'absent', label: 'Absent', code: 'ABSENT' },
+      { key: 'half', label: 'Half Day', code: 'HALF_DAY' }
+    ].map(item => ({
+      key: item.key,
+      label: item.label,
+      count: records.filter(record => record.status === item.code).length
+    }));
+    const maximum = Math.max(1, ...bars.map(bar => bar.count));
+    return bars.map(bar => ({ ...bar, percent: 100 * bar.count / maximum }));
+  }
+
+  get employeeChartDescription(): string {
+    return `For ${this.monthLabel}: ${this.presentCount} present, ${this.lateCount} late, ` +
+      `${this.absentCount} absent, ${this.halfDayCount} half day.`;
+  }
+
+  onEmployeeMonthChange(value: string): void {
+    if (!this.isEmployee || !/^\d{4}-(0[1-9]|1[0-2])$/.test(value)) return;
+    const [year, month] = value.split('-').map(Number);
+    if (year === this.currentMonth.getFullYear() && month === this.currentMonth.getMonth() + 1) return;
+    this.currentMonth = new Date(year, month - 1, 1);
+    this.selectedDate = '';
+    this.selectedDayRecords = [];
+    this.loadMonthlyAttendance();
+  }
+
+  firstPunchInAt(record: AttendanceRecord): string {
+    const sessions = (record.sessions || []).filter(session => !!session.punchInAt);
+    if (!sessions.length) return '';
+    const first = sessions.reduce((earliest, session) =>
+      new Date(session.punchInAt).getTime() < new Date(earliest.punchInAt).getTime()
+        ? session : earliest
+    );
+    return first.punchInAt;
+  }
+
+  latestPunchOutAt(record: AttendanceRecord): string {
+    const sessions = (record.sessions || []).filter(session => !!session.punchInAt);
+    if (!sessions.length) return '';
+    const latest = sessions.reduce((mostRecent, session) =>
+      new Date(session.punchInAt).getTime() > new Date(mostRecent.punchInAt).getTime()
+        ? session : mostRecent
+    );
+    // A currently open session must show "Not yet", even if earlier ones finished.
+    return latest.punchOutAt || '';
+  }
+
   get totalWorkMinutes(): number {
     return this.monthlyRecords.reduce(
       (total, record) =>
@@ -264,6 +326,15 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       this.now.getMonth(),
       this.now.getDate()
     );
+
+    // Keep Punch In/Out independent of the month being browsed below the card.
+    // The daily records request remains unfiltered for Employees.
+    if (this.isEmployee) {
+      const dailyRecord = this.records.find(
+        record => record.workDate?.slice(0, 10) === todayKey
+      );
+      if (dailyRecord) return dailyRecord;
+    }
 
     return this.monthlyRecords.find(
       record => record.workDate?.slice(0, 10) === todayKey
@@ -586,7 +657,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       },
       {
         enableHighAccuracy: true,
-        timeout: 20000,
+        timeout: 300000,
         maximumAge: 0
       }
     );

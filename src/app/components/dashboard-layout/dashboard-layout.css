@@ -109,3 +109,33 @@
   }
 
 }
+
+/* Simple employee-only shell; legacy Admin / Super Admin layout stays untouched. */
+.employee-shell { min-height: 100vh; background: #f3f7ff; }
+.employee-topbar { position: sticky; top: 0; z-index: 60; display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 78px; padding: 0 clamp(17px, 3.5vw, 54px); background: #fff; border-bottom: 1px solid #e1e9f6; }
+.employee-brand { display: inline-flex; align-items: center; gap: 12px; color: #101c35; text-decoration: none; font-size: 25px; font-weight: 800; white-space: nowrap; }
+.employee-brand-icon { display: inline-flex; justify-content: center; align-items: center; width: 42px; height: 42px; border-radius: 12px; color: #fff; background: #0755f9; font-weight: 800; font-size: 27px; }
+.employee-brand-blue { color: #0755f9; }
+.employee-shell-content { max-width: 1500px; margin: 0 auto; min-width: 0; }
+.employee-profile-control { position: relative; }
+.employee-profile-trigger { display: inline-flex; justify-content: flex-end; align-items: center; gap: 14px; padding: 6px; border: 0; border-radius: 13px; background: transparent; cursor: pointer; }
+.employee-profile-trigger:hover, .employee-profile-trigger[aria-expanded="true"] { background: #eff5ff; }
+.employee-profile-trigger:focus-visible, .employee-logout-item:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+.employee-profile-name { display: flex; flex-direction: column; align-items: flex-end; min-width: 0; }
+.employee-profile-name strong { color: #111f3c; font-size: 14px; font-weight: 800; line-height: 1.25; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.employee-profile-name small { color: #58719a; font-size: 12px; margin-top: 3px; }
+.employee-profile-avatar { display: inline-flex; flex: 0 0 45px; align-items: center; justify-content: center; width: 45px; height: 45px; border-radius: 50%; background: #0755f9; color: #fff; font-size: 19px; font-weight: 800; box-shadow: 0 3px 8px rgba(7,85,249,.14); }
+.employee-profile-chevron { width: 17px; height: 17px; color: #526786; }
+.employee-profile-menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 65; min-width: 185px; padding: 6px; background: #fff; border: 1px solid #dbe5f5; border-radius: 13px; box-shadow: 0 14px 35px rgba(20, 45, 86, .15); }
+.employee-logout-item { display: inline-flex; align-items: center; gap: 10px; width: 100%; padding: 12px 13px; border: none; border-radius: 9px; background: transparent; color: #c22935; font-size: 14px; font-weight: 700; cursor: pointer; text-align: left; }
+.employee-logout-item:hover { background: #fff1f1; }
+.employee-logout-item:disabled { opacity: .55; cursor: not-allowed; }
+.employee-logout-item svg { width: 18px; height: 18px; }
+@media (max-width: 600px) {
+  .employee-topbar { height: 68px; padding: 0 14px; }
+  .employee-brand { font-size: 20px; gap: 9px; }
+  .employee-brand-icon { width: 36px; height: 36px; border-radius: 10px; font-size: 22px; }
+  .employee-profile-trigger { gap: 6px; }
+  .employee-profile-name { display: none; }
+  .employee-profile-avatar { width: 39px; height: 39px; flex-basis: 39px; font-size: 17px; }
+}

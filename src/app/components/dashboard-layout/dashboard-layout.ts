@@ -1,5 +1,5 @@
 
-import { Component, inject } from '@angular/core';
+import { Component, inject, ElementRef, HostListener } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Auth } from '../../services/auth';
 
@@ -14,10 +14,12 @@ export class DashboardLayout {
 
   private authService = inject(Auth);
   private router = inject(Router);
+  private elementRef = inject(ElementRef<HTMLElement>);
 
   sidebarCollapsed = false;
   mobileMenuOpen = false;
   isLoggingOut = false;
+  profileMenuOpen = false;
 
   get user() {
     return this.authService.getUser();
@@ -27,6 +29,31 @@ export class DashboardLayout {
     return this.user?.employeeProfile?.firstName
       || this.user?.email?.split('@')[0]
       || 'User';
+  }
+
+  get employeeDisplayName(): string {
+    const profile = this.user?.employeeProfile;
+    const fullName = [profile?.firstName, profile?.lastName].filter(Boolean).join(' ').trim();
+    return fullName || this.userName;
+  }
+
+  toggleProfileMenu(): void {
+    this.profileMenuOpen = !this.profileMenuOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  closeMenuWhenClickingOutside(event: MouseEvent): void {
+    if (!this.profileMenuOpen) return;
+    const target = event.target;
+    const profileControl = this.elementRef.nativeElement.querySelector('.employee-profile-control');
+    if (target instanceof Node && profileControl && !profileControl.contains(target)) {
+      this.profileMenuOpen = false;
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  closeProfileMenu(): void {
+    this.profileMenuOpen = false;
   }
 
   get userInitial(): string {
@@ -66,6 +93,7 @@ export class DashboardLayout {
     if (this.isLoggingOut) return;
 
     this.isLoggingOut = true;
+    this.profileMenuOpen = false;
 
     this.authService.logout().subscribe({
       next: () => {

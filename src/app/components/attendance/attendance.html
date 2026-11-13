@@ -163,6 +163,82 @@
     <div *ngIf="errorMessage" class="ea-inline-alert ea-alert-error" role="alert">{{ errorMessage }}</div>
   </article>
 
+  <!-- Employee-only monthly records and status summary. Admin/Super Admin markup is unchanged. -->
+  <section class="ea-monthly-card" aria-labelledby="ea-records-title">
+    <div class="ea-monthly-top">
+      <div>
+        <h2 id="ea-records-title">My Attendance Records</h2>
+        <p>Your attendance details for the selected month.</p>
+      </div>
+      <label class="ea-month-picker">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/>
+        </svg>
+        <span class="ea-visually-hidden">Select attendance month</span>
+        <input type="month" aria-label="Select attendance month"
+          [ngModel]="monthStart.slice(0, 7)"
+          (ngModelChange)="onEmployeeMonthChange($event)"/>
+      </label>
+    </div>
+
+    <div *ngIf="isMonthlyLoading" class="ea-monthly-loading" role="status">
+      Loading attendance for {{ monthLabel }}...
+    </div>
+
+    <div *ngIf="!isMonthlyLoading" class="ea-monthly-grid">
+      <div class="ea-records-col">
+        <div class="ea-table-scroll">
+          <table class="ea-records-table">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Punch In</th>
+                <th scope="col">Punch Out</th>
+                <th scope="col">Work Hours</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let record of employeeMonthRecords">
+                <td class="ea-td-date">{{ record.workDate | date:'dd MMM yyyy':'+0530' }}</td>
+                <td>{{ firstPunchInAt(record) ? (firstPunchInAt(record) | date:'hh:mm a':'+0530') : '—' }}</td>
+                <td>{{ latestPunchOutAt(record) ? (latestPunchOutAt(record) | date:'hh:mm a':'+0530') : (firstPunchInAt(record) ? 'Not yet' : '—') }}</td>
+                <td>{{ formatHours(record.totalWorkMinutes) }}</td>
+                <td>
+                  <span class="ea-record-status" [ngClass]="statusClass(record.status)">
+                    {{ record.status.replace('_', ' ') }}
+                  </span>
+                </td>
+              </tr>
+              <tr *ngIf="employeeMonthRecords.length === 0">
+                <td colspan="5" class="ea-table-empty">No attendance records found for {{ monthLabel }}.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="ea-summary-col" aria-labelledby="ea-summary-title">
+        <div class="ea-summary-heading">
+          <div>
+            <h3 id="ea-summary-title">Monthly Attendance Summary</h3>
+            <p>Attendance trend for the selected period.</p>
+          </div>
+          <span class="ea-summary-month">{{ monthLabel }}</span>
+        </div>
+        <div class="ea-chart" role="img" [attr.aria-label]="employeeChartDescription">
+          <div *ngFor="let bar of employeeStatusBars" class="ea-chart-column" [ngClass]="'ea-bar-' + bar.key">
+            <strong>{{ bar.count }}</strong>
+            <div class="ea-chart-track">
+              <div class="ea-chart-fill" [style.height.%]="bar.percent"></div>
+            </div>
+            <span class="ea-chart-label">{{ bar.label }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Employee-only custom popup for failed punch-in / punch-out API requests. -->
   <div *ngIf="actionError" class="ea-error-backdrop" (click)="actionError = ''" (keydown.escape)="actionError = ''">
     <section class="ea-error-dialog" role="alertdialog" aria-modal="true"
@@ -538,7 +614,10 @@
               <th class="px-5 py-4">Date</th>
               <th class="px-5 py-4">Status</th>
               <th class="px-5 py-4">Working Hours</th>
-              <th class="px-5 py-4">Sessions</th>
+              <!-- ADMIN: show punch times; SUPER_ADMIN: retain existing Sessions column -->
+              <th *ngIf="user?.role === 'ADMIN'" class="px-5 py-4">Punch In</th>
+              <th *ngIf="user?.role === 'ADMIN'" class="px-5 py-4">Punch Out</th>
+              <th *ngIf="user?.role !== 'ADMIN'" class="px-5 py-4">Sessions</th>
             </tr>
           </thead>
 
@@ -568,7 +647,23 @@
                 {{ formatHours(record.totalWorkMinutes) }}
               </td>
 
-              <td class="px-5 py-4 text-slate-600">
+              <!-- ADMIN: first punch-in and latest punch-out in Indian Standard Time -->
+              <td *ngIf="user?.role === 'ADMIN'" class="px-5 py-4 text-slate-600">
+                {{ record.sessions?.[0]?.punchInAt
+                    ? (record.sessions[0].punchInAt | date:'hh:mm a':'+0530')
+                    : '—' }}
+              </td>
+
+              <td *ngIf="user?.role === 'ADMIN'" class="px-5 py-4 text-slate-600">
+                {{ record.sessions?.length
+                    ? (record.sessions[record.sessions.length - 1].punchOutAt
+                        ? (record.sessions[record.sessions.length - 1].punchOutAt | date:'hh:mm a':'+0530')
+                        : 'Not yet')
+                    : '—' }}
+              </td>
+
+              <!-- SUPER_ADMIN: keep original sessions count -->
+              <td *ngIf="user?.role !== 'ADMIN'" class="px-5 py-4 text-slate-600">
                 {{ record.sessions?.length || 0 }}
               </td>
 
@@ -801,7 +896,10 @@
               <th *ngIf="isAdmin" class="px-5 py-3">Employee</th>
               <th class="px-5 py-3">Status</th>
               <th class="px-5 py-3">Working Hours</th>
-              <th class="px-5 py-3">Sessions</th>
+              <!-- ADMIN: show punch times; SUPER_ADMIN: retain existing Sessions column -->
+              <th *ngIf="user?.role === 'ADMIN'" class="px-5 py-3">Punch In</th>
+              <th *ngIf="user?.role === 'ADMIN'" class="px-5 py-3">Punch Out</th>
+              <th *ngIf="user?.role !== 'ADMIN'" class="px-5 py-3">Sessions</th>
             </tr>
           </thead>
 
@@ -826,7 +924,23 @@
                 {{ formatHours(record.totalWorkMinutes) }}
               </td>
 
-              <td class="px-5 py-4 text-slate-600">
+              <!-- ADMIN: first punch-in and latest punch-out in Indian Standard Time -->
+              <td *ngIf="user?.role === 'ADMIN'" class="px-5 py-4 text-slate-600">
+                {{ record.sessions?.[0]?.punchInAt
+                    ? (record.sessions[0].punchInAt | date:'hh:mm a':'+0530')
+                    : '—' }}
+              </td>
+
+              <td *ngIf="user?.role === 'ADMIN'" class="px-5 py-4 text-slate-600">
+                {{ record.sessions?.length
+                    ? (record.sessions[record.sessions.length - 1].punchOutAt
+                        ? (record.sessions[record.sessions.length - 1].punchOutAt | date:'hh:mm a':'+0530')
+                        : 'Not yet')
+                    : '—' }}
+              </td>
+
+              <!-- SUPER_ADMIN: keep original sessions count -->
+              <td *ngIf="user?.role !== 'ADMIN'" class="px-5 py-4 text-slate-600">
                 {{ record.sessions?.length || 0 }}
               </td>
 

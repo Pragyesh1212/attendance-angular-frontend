@@ -1,5 +1,7 @@
 
-import { Routes } from '@angular/router';
+import { Router, Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Auth } from './services/auth';
 import { authGuard } from './guards/auth-guard';
 import { roleGuard } from './guards/role-guard';
 import { WorkLocationsComponent } from './components/work-locations/work-locations';
@@ -25,7 +27,10 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
-        canActivate: [roleGuard],
+        canActivate: [roleGuard, () =>
+          inject(Auth).getUser()?.role === 'EMPLOYEE'
+            ? inject(Router).createUrlTree(['/attendance'])
+            : true],
         data: {
           roles: ['SUPER_ADMIN', 'ADMIN', 'EMPLOYEE']
         },
