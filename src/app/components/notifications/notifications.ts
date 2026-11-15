@@ -1,10 +1,11 @@
+import { TranslateTextPipe } from '../../shared/translate-text.pipe';
 import { FeedbackService } from '../../shared/feedback/feedback.service';
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../services/notification';
 
-@Component({ selector: 'app-notifications', standalone: true, imports: [CommonModule, DatePipe, FormsModule], templateUrl: './notifications.html' })
+@Component({ selector: 'app-notifications', standalone: true, imports: [CommonModule, DatePipe, FormsModule, TranslateTextPipe], templateUrl: './notifications.html' })
 export class Notifications implements OnInit {
   private readonly uiFeedback = inject(FeedbackService);
 

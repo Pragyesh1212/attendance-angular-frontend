@@ -6,12 +6,12 @@
 
     <div>
       <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">
-        Employee
-        <span class="text-blue-600">Management</span>
+        {{ "Employee" | t }}
+        <span class="text-blue-600">{{ "Management" | t }}</span>
       </h1>
 
       <p class="mt-2 text-base text-slate-600">
-        Manage employees and their information.
+        {{ "Manage employees and their information." | t }}
       </p>
     </div>
 
@@ -21,7 +21,7 @@
         type="button"
         (click)="openAddModal()"
         class="rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700">
-        + Add Employee
+        {{ "+ Add Employee" | t }}
       </button>
     }
 
@@ -73,7 +73,7 @@
         <div>
 
           <p class="text-base font-medium text-slate-700">
-            Total Employees
+            {{ "Total Employees" | t }}
           </p>
 
           <h2 class="mt-1 text-4xl font-extrabold text-slate-900">
@@ -106,7 +106,7 @@
           type="text"
           [(ngModel)]="searchTerm"
           (keyup.enter)="applyFilters()"
-          placeholder="Search employees..."
+          [placeholder]="'Search employees...' | t"
           class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
 
@@ -122,7 +122,7 @@
             [disabled]="loadingOrganizations"
             class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-slate-100">
 
-            <option value="">All Organizations</option>
+            <option value="">{{ "All Organizations" | t }}</option>
 
             <option
               *ngFor="let organization of organizations"
@@ -145,7 +145,7 @@
             [(ngModel)]="departmentFilter"
             class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
 
-            <option value="">All Departments</option>
+            <option value="">{{ "All Departments" | t }}</option>
 
             <option
               *ngFor="let department of departments"
@@ -168,9 +168,9 @@
           [(ngModel)]="statusFilter"
           class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
 
-          <option value="">All Statuses</option>
-          <option value="ACTIVE">Active</option>
-          <option value="INACTIVE">Inactive</option>
+          <option value="">{{ "All Statuses" | t }}</option>
+          <option value="ACTIVE">{{ "Active" | t }}</option>
+          <option value="INACTIVE">{{ "Inactive" | t }}</option>
 
         </select>
 
@@ -184,7 +184,7 @@
           (click)="applyFilters()"
           class="flex-1 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700">
 
-          Apply
+          {{ "Apply" | t }}
 
         </button>
 
@@ -193,7 +193,7 @@
           (click)="resetFilters()"
           class="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
 
-          Reset
+          {{ "Reset" | t }}
 
         </button>
 
@@ -210,7 +210,7 @@
     <div class="flex items-center justify-between border-b border-slate-100 px-6 py-5">
 
       <h2 class="text-xl font-bold text-slate-900">
-        Employees
+        {{ "Employees" | t }}
       </h2>
 
       <span class="text-sm font-medium text-slate-500">
@@ -238,11 +238,11 @@
       </div>
 
       <h3 class="text-lg font-bold text-slate-800">
-        No Employees Found
+        {{ "No Employees Found" | t }}
       </h3>
 
       <p class="mt-2 text-sm text-slate-500">
-        Try changing your search or filter criteria.
+        {{ "Try changing your search or filter criteria." | t }}
       </p>
 
     </div>
@@ -260,51 +260,51 @@
           <tr>
 
             <th class="px-5 py-5 font-bold">
-              Employee
+              {{ "Employee" | t }}
             </th>
 
             <th class="px-5 py-5 font-bold">
-              Employee Code
+              {{ "Employee Code" | t }}
             </th>
 
             @if (isSuperAdmin) {
 
               <th class="px-5 py-5 font-bold">
-                Organization
+                {{ "Organization" | t }}
               </th>
 
             } @else {
 
               <th class="px-5 py-5 font-bold">
-                Department
+                {{ "Department" | t }}
               </th>
 
             }
 
             <th class="px-5 py-5 font-bold">
-              Shift
+              {{ "Shift" | t }}
             </th>
 
             <th class="px-5 py-5 font-bold">
-              Designation
+              {{ "Designation" | t }}
             </th>
 
             <th class="px-5 py-5 font-bold">
-              Phone
+              {{ "Phone" | t }}
             </th>
 
             <th class="px-5 py-5 font-bold">
-              Assigned Work Location
+              {{ "Assigned Work Location" | t }}
             </th>
 
             <th class="px-5 py-5 font-bold">
-              Status
+              {{ "Status" | t }}
             </th>
 
             @if (!isSuperAdmin) {
 
               <th class="px-5 py-5 text-right font-bold">
-                Actions
+                {{ "Actions" | t }}
               </th>
 
             }
@@ -342,9 +342,11 @@
 
                 <div>
 
-                  <p class="font-bold text-slate-900">
+                  <a class="font-bold text-slate-900 hover:text-blue-700 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 rounded"
+                     [routerLink]="['/employees', employee.id, 'attendance']"
+                     [attr.aria-label]="'View attendance for ' + getFullName(employee)">
                     {{ getFullName(employee) }}
-                  </p>
+                  </a>
 
                   <p class="mt-1 text-xs text-slate-500">
                     {{ employee.email }}
@@ -436,7 +438,7 @@
               <ng-template #noWorkLocation>
 
                 <span class="text-slate-400">
-                  Not assigned
+                  {{ "Not assigned" | t }}
                 </span>
 
               </ng-template>
@@ -452,7 +454,7 @@
                   ? 'bg-green-100 text-green-700'
                   : 'bg-red-100 text-red-700'">
 
-                {{ employee.status }}
+                {{ employee.status | t }}
 
               </span>
 
@@ -465,23 +467,23 @@
 
                 <div class="flex justify-end gap-2">
 
-                  <button type="button" (click)="openEditModal(employee)" title="Edit employee" aria-label="Edit employee"
+                  <button type="button" (click)="openEditModal(employee)" [attr.title]="'Edit employee' | t" [attr.aria-label]="'Edit employee' | t"
                     class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-blue-200 bg-white text-blue-700 transition hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">
                     <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/></svg>
                   </button>
 
-                  <button type="button" (click)="openLocationModal(employee)" title="Assign location" aria-label="Assign location"
+                  <button type="button" (click)="openLocationModal(employee)" [attr.title]="'Assign location' | t" [attr.aria-label]="'Assign location' | t"
                     class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-indigo-200 bg-white text-indigo-700 transition hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
                     <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
                   </button>
 
                   @if (employee.status === 'ACTIVE') {
-                    <button type="button" (click)="openDeleteModal(employee)" title="Deactivate employee" aria-label="Deactivate employee"
+                    <button type="button" (click)="openDeleteModal(employee)" [attr.title]="'Deactivate employee' | t" [attr.aria-label]="'Deactivate employee' | t"
                       class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-white text-red-700 transition hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500">
                       <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 10v6M14 10v6"/></svg>
                     </button>
                   } @else if (employee.status === 'INACTIVE') {
-                    <button type="button" (click)="openDeleteModal(employee)" title="Reactivate employee" aria-label="Reactivate employee"
+                    <button type="button" (click)="openDeleteModal(employee)" [attr.title]="'Reactivate employee' | t" [attr.aria-label]="'Reactivate employee' | t"
                       class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-200 bg-white text-emerald-700 transition hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500">
                       <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M4.93 9a8 8 0 0 1 13.31-2.37L20 12"/><path d="M4 17v-5h5"/><path d="M19.07 15a8 8 0 0 1-13.31 2.37L4 12"/></svg>
                     </button>
@@ -518,7 +520,7 @@
           [disabled]="currentPage === 1"
           class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 disabled:opacity-40">
 
-          Previous
+          {{ "Previous" | t }}
 
         </button>
 
@@ -528,7 +530,7 @@
           [disabled]="currentPage >= totalPages"
           class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-blue-50 disabled:opacity-40">
 
-          Next
+          {{ "Next" | t }}
 
         </button>
 
@@ -553,10 +555,10 @@
     <div class="flex items-start justify-between border-b border-slate-200 px-6 py-5">
       <div>
         <h2 class="text-xl font-bold text-slate-800">
-          {{ isEditMode ? 'Edit Employee' : 'Add New Employee' }}
+          {{ (isEditMode ? 'Edit Employee' : 'Add New Employee') | t }}
         </h2>
         <p class="mt-1 text-sm text-slate-500">
-          {{ isEditMode ? 'Update employee information.' : 'Create a new employee account and profile.' }}
+          {{ (isEditMode ? 'Update employee information.' : 'Create a new employee account and profile.') | t }}
         </p>
       </div>
 
@@ -575,62 +577,62 @@
         <!-- Personal Information -->
         <section>
           <h3 class="mb-4 border-b border-slate-100 pb-2 text-sm font-bold text-blue-700">
-            Personal Information
+            {{ "Personal Information" | t }}
           </h3>
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
             <div>
               <label class="mb-1.5 block text-sm font-medium text-slate-700">
-                First Name *
+                {{ "First Name *" | t }}
               </label>
               <input formControlName="firstName"
-                placeholder="Enter first name"
+                [placeholder]="'Enter first name' | t"
                 class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"/>
 
               <p *ngIf="f.firstName.touched && f.firstName.invalid"
                 class="mt-1 text-xs text-red-600">
-                First name is required.
+                {{ "First name is required." | t }}
               </p>
             </div>
 
             <div>
               <label class="mb-1.5 block text-sm font-medium text-slate-700">
-                Last Name *
+                {{ "Last Name *" | t }}
               </label>
               <input formControlName="lastName"
-                placeholder="Enter last name"
+                [placeholder]="'Enter last name' | t"
                 class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"/>
 
               <p *ngIf="f.lastName.touched && f.lastName.invalid"
                 class="mt-1 text-xs text-red-600">
-                Last name is required.
+                {{ "Last name is required." | t }}
               </p>
             </div>
 
             <div>
               <label class="mb-1.5 block text-sm font-medium text-slate-700">
-                Employee Code *
+                {{ "Employee Code *" | t }}
               </label>
               <input formControlName="employeeCode"
-                placeholder="e.g. EMP001"
+                [placeholder]="'e.g. EMP001' | t"
                 class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-slate-100 disabled:text-slate-500"/>
 
               <p *ngIf="f.employeeCode.touched && f.employeeCode.invalid"
                 class="mt-1 text-xs text-red-600">
-                Employee code is required.
+                {{ "Employee code is required." | t }}
               </p>
               <p *ngIf="isEditMode" class="mt-1 text-xs text-slate-500">
-                Employee code cannot be changed here.
+                {{ "Employee code cannot be changed here." | t }}
               </p>
             </div>
 
             <div>
               <label class="mb-1.5 block text-sm font-medium text-slate-700">
-                Phone Number
+                {{ "Phone Number" | t }}
               </label>
               <input formControlName="phone"
-                placeholder="Enter phone number"
+                [placeholder]="'Enter phone number' | t"
                 class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"/>
             </div>
 
@@ -640,14 +642,14 @@
         <!-- Account Information -->
         <section>
           <h3 class="mb-4 border-b border-slate-100 pb-2 text-sm font-bold text-blue-700">
-            Account Information
+            {{ "Account Information" | t }}
           </h3>
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
             <div>
               <label class="mb-1.5 block text-sm font-medium text-slate-700">
-                Email Address *
+                {{ "Email Address *" | t }}
               </label>
               <input type="email" formControlName="email"
                 placeholder="employee@company.com"
@@ -655,21 +657,21 @@
 
               <p *ngIf="f.email.touched && f.email.invalid"
                 class="mt-1 text-xs text-red-600">
-                Enter a valid email address.
+                {{ "Enter a valid email address." | t }}
               </p>
             </div>
 
             <div *ngIf="!isEditMode">
               <label class="mb-1.5 block text-sm font-medium text-slate-700">
-                Temporary Password *
+                {{ "Temporary Password *" | t }}
               </label>
               <input type="password" formControlName="password"
-                placeholder="Minimum 12 characters"
+                [placeholder]="'Minimum 12 characters' | t"
                 class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"/>
 
               <p *ngIf="f.password.touched && f.password.invalid"
                 class="mt-1 text-xs text-red-600">
-                Password must contain at least 12 characters.
+                {{ "Password must contain at least 12 characters." | t }}
               </p>
             </div>
 
@@ -679,27 +681,27 @@
         <!-- Professional Information -->
         <section>
           <h3 class="mb-4 border-b border-slate-100 pb-2 text-sm font-bold text-blue-700">
-            Professional Information
+            {{ "Professional Information" | t }}
           </h3>
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
             <div>
               <label class="mb-1.5 block text-sm font-medium text-slate-700">
-                Designation
+                {{ "Designation" | t }}
               </label>
               <input formControlName="designation"
-                placeholder="e.g. Software Developer"
+                [placeholder]="'e.g. Software Developer' | t"
                 class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"/>
             </div>
 
             <div>
               <label class="mb-1.5 block text-sm font-medium text-slate-700">
-                Department
+                {{ "Department" | t }}
               </label>
               <select formControlName="departmentId"
                 class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500">
-                <option value="">Select Department</option>
+                <option value="">{{ "Select Department" | t }}</option>
                 <option *ngFor="let department of departments"
                   [value]="department.id">
                   {{ department.name }}
@@ -707,47 +709,47 @@
               </select>
             </div>
 
-            <div>
-              <label class="mb-1.5 block text-sm font-medium text-slate-700">
-                Shift
-              </label>
-              <select formControlName="shiftId"
+            <div class="sm:col-span-2">
+              <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ "Number of Shifts *" | t }}</label>
+              <input type="number" min="1" max="24" step="1" inputmode="numeric"
+                formControlName="numberOfShifts" (input)="syncShiftCount()"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"/>
+              <p class="mt-1 text-xs text-slate-500">{{ "Enter 1, 2, 3 or more. Up to 24 shifts can be assigned per day." | t }}</p>
+              <p *ngIf="employeeForm.controls.numberOfShifts.invalid && employeeForm.controls.numberOfShifts.touched"
+                class="mt-1 text-xs text-red-600">{{ "Enter a whole number from 1 to 24." | t }}</p>
+            </div>
+
+            <div *ngFor="let value of shiftSelections; let i = index; trackBy: trackByShiftIndex">
+              <label class="mb-1.5 block text-sm font-medium text-slate-700">Shift {{ i + 1 }} *</label>
+              <select [value]="value" (change)="selectShift(i, $any($event.target).value)"
                 [disabled]="loadingShifts || shifts.length === 0"
                 class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500">
-                <option value="">{{ isEditMode ? "Keep current shift" : "No shift assigned" }}</option>
+                <option value="">Select Shift {{ i + 1 }}</option>
                 <option *ngFor="let shift of shifts" [value]="shift.id">
                   {{ shift.name }} ({{ shift.startTime }} - {{ shift.endTime }})
                 </option>
               </select>
-              <p *ngIf="loadingShifts" class="mt-1 text-xs text-slate-500">
-                Loading active shifts...
-              </p>
-              <p *ngIf="!loadingShifts && shifts.length === 0"
-                class="mt-1 text-xs text-amber-700">
-                No active shifts available. Create or activate a shift first.
-              </p>
+              <p *ngIf="loadingShifts" class="mt-1 text-xs text-slate-500">{{ "Loading active shifts..." | t }}</p>
             </div>
+            <p *ngIf="!loadingShifts && shifts.length === 0" class="sm:col-span-2 text-xs text-amber-700">
+              {{ "No active shifts available. Create or activate a shift first." | t }}
+            </p>
 
             <div>
               <label class="mb-1.5 block text-sm font-medium text-slate-700">
-                Joining Date
+                {{ "Joining Date" | t }}
               </label>
               <input type="date" formControlName="joiningDate"
                 class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"/>
             </div>
 
-            <div>
-              <label class="mb-1.5 block text-sm font-medium text-slate-700">
-                Profile Image URL
-              </label>
-              <input type="url" formControlName="avatarUrl"
-                placeholder="https://example.com/image.jpg"
-                class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"/>
-
-              <p *ngIf="f.avatarUrl.touched && f.avatarUrl.invalid"
-                class="mt-1 text-xs text-red-600">
-                Enter a valid HTTP or HTTPS URL.
-              </p>
+            <div class="sm:col-span-2">
+              <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ "Profile Image" | t }}</label>
+              <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onAvatarChosen($event)"
+                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-blue-700"/>
+              <p class="mt-1 text-xs text-slate-500">{{ "Choose JPEG, PNG or WebP, up to 1 MB." | t }}</p>
+              <img *ngIf="avatarPreview" [src]="avatarPreview" [alt]="'Selected profile image preview' | t"
+                class="mt-2 h-20 w-20 rounded-lg border border-slate-200 object-cover"/>
             </div>
 
           </div>
@@ -767,13 +769,13 @@
           (click)="closeAddModal()"
           [disabled]="saving"
           class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-50">
-          Cancel
+          {{ "Cancel" | t }}
         </button>
 
         <button type="submit"
           [disabled]="saving"
           class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
-          {{ saving ? (isEditMode ? 'Saving...' : 'Creating...') : (isEditMode ? 'Save Changes' : 'Create Employee') }}
+          {{ (saving ? (isEditMode ? 'Saving...' : 'Creating...') : (isEditMode ? 'Save Changes' : 'Create Employee')) | t }}
         </button>
 
       </div>
@@ -794,7 +796,7 @@
 
     <div class="flex items-start justify-between border-b border-slate-200 px-6 py-5">
       <div>
-        <h2 class="text-xl font-bold text-slate-800">Assign Work Location</h2>
+        <h2 class="text-xl font-bold text-slate-800">{{ "Assign Work Location" | t }}</h2>
         <p class="mt-1 text-sm text-slate-500">
           {{ selectedEmployeeForLocation ? getFullName(selectedEmployeeForLocation) : '' }}
         </p>
@@ -810,25 +812,25 @@
     <div class="space-y-5 p-6">
       <div>
         <label class="mb-1.5 block text-sm font-medium text-slate-700">
-          Existing Work Location *
+          {{ "Existing Work Location *" | t }}
         </label>
         <select
           [(ngModel)]="selectedWorkLocationId"
           [ngModelOptions]="{standalone: true}"
           class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-          <option value="">Select a created work location</option>
+          <option value="">{{ "Select a created work location" | t }}</option>
           <option *ngFor="let location of workLocations" [value]="location.id">
             {{ location.name }} · {{ location.type }}
           </option>
         </select>
         <p *ngIf="workLocations.length === 0" class="mt-2 text-xs text-amber-700">
-          No active work locations found. Create and activate a location in the Work Locations module first.
+          {{ "No active work locations found. Create and activate a location in the Work Locations module first." | t }}
         </p>
       </div>
 
       <div>
         <label class="mb-2 block text-sm font-medium text-slate-700">
-          Assignment Type *
+          {{ "Assignment Type *" | t }}
         </label>
         <div class="grid grid-cols-2 gap-3">
           <button
@@ -838,7 +840,7 @@
               ? 'border-blue-500 bg-blue-50 text-blue-700 ring-2 ring-blue-100'
               : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'"
             class="rounded-lg border px-4 py-3 text-sm font-semibold transition">
-            Permanent
+            {{ "Permanent" | t }}
           </button>
           <button
             type="button"
@@ -847,7 +849,7 @@
               ? 'border-blue-500 bg-blue-50 text-blue-700 ring-2 ring-blue-100'
               : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'"
             class="rounded-lg border px-4 py-3 text-sm font-semibold transition">
-            Temporary
+            {{ "Temporary" | t }}
           </button>
         </div>
       </div>
@@ -855,7 +857,7 @@
       <div *ngIf="locationAssignmentType === 'TEMPORARY'" class="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-700">Start Date & Time *</label>
+            <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ "Start Date & Time *" | t }}</label>
             <input
               type="datetime-local"
               [(ngModel)]="temporaryStartAt"
@@ -863,7 +865,7 @@
               class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"/>
           </div>
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-slate-700">End Date & Time *</label>
+            <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ "End Date & Time *" | t }}</label>
             <input
               type="datetime-local"
               [(ngModel)]="temporaryEndAt"
@@ -872,12 +874,12 @@
           </div>
         </div>
         <div>
-          <label class="mb-1.5 block text-sm font-medium text-slate-700">Reason</label>
+          <label class="mb-1.5 block text-sm font-medium text-slate-700">{{ "Reason" | t }}</label>
           <textarea
             [(ngModel)]="temporaryReason"
             [ngModelOptions]="{standalone: true}"
             rows="2"
-            placeholder="Optional reason for temporary assignment"
+            [placeholder]="'Optional reason for temporary assignment' | t"
             class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"></textarea>
         </div>
       </div>
@@ -894,14 +896,14 @@
         (click)="closeLocationModal()"
         [disabled]="assigningLocation"
         class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-50">
-        Cancel
+        {{ "Cancel" | t }}
       </button>
       <button
         type="button"
         (click)="assignWorkLocation()"
         [disabled]="assigningLocation || workLocations.length === 0"
         class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">
-        {{ assigningLocation ? 'Assigning...' : 'Assign Location' }}
+        {{ (assigningLocation ? 'Assigning...' : 'Assign Location') | t }}
       </button>
     </div>
   </div>
@@ -918,19 +920,19 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 10v6M14 10v6"/></svg>
         }
       </div>
-      <h2 id="deactivate-employee-title" class="text-xl font-bold text-slate-900">{{ isReactivatingEmployee ? 'Reactivate employee?' : 'Deactivate employee?' }}</h2>
+      <h2 id="deactivate-employee-title" class="text-xl font-bold text-slate-900">{{ (isReactivatingEmployee ? 'Reactivate employee?' : 'Deactivate employee?') | t }}</h2>
       <p id="deactivate-employee-description" class="mt-2 text-sm leading-6 text-slate-600">
-        Are you sure you want to {{ isReactivatingEmployee ? 'reactivate' : 'deactivate' }} <span class="font-semibold text-slate-900">{{ employeeToDelete ? getFullName(employeeToDelete) : '' }}</span>?
-        {{ isReactivatingEmployee ? 'They will become active again. Their previous attendance history is preserved.' : 'Their attendance history will remain preserved. They will no longer be active.' }}
+        Are you sure you want to {{ (isReactivatingEmployee ? 'reactivate' : 'deactivate') | t }} <span class="font-semibold text-slate-900">{{ employeeToDelete ? getFullName(employeeToDelete) : '' }}</span>?
+        {{ (isReactivatingEmployee ? 'They will become active again. Their previous attendance history is preserved.' : 'Their attendance history will remain preserved. They will no longer be active.') | t }}
       </p>
       <div *ngIf="deleteErrorMessage" role="alert" class="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ deleteErrorMessage }}</div>
     </div>
     <div class="flex justify-end gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4">
-      <button type="button" (click)="closeDeleteModal()" [disabled]="deletingEmployee" class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50">Cancel</button>
+      <button type="button" (click)="closeDeleteModal()" [disabled]="deletingEmployee" class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50">{{ "Cancel" | t }}</button>
       <button type="button" (click)="confirmDeleteEmployee()" [disabled]="deletingEmployee"
         class="rounded-lg px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
         [ngClass]="isReactivatingEmployee ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'">
-        {{ deletingEmployee ? (isReactivatingEmployee ? 'Reactivating...' : 'Deactivating...') : (isReactivatingEmployee ? 'Reactivate Employee' : 'Deactivate Employee') }}
+        {{ (deletingEmployee ? (isReactivatingEmployee ? 'Reactivating...' : 'Deactivating...') : (isReactivatingEmployee ? 'Reactivate Employee' : 'Deactivate Employee')) | t }}
       </button>
     </div>
   </div>

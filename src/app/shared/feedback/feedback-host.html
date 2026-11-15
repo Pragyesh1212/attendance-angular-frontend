@@ -4,10 +4,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>
     </span>
     <div class="ae-feedback-copy">
-      <strong>{{ toast.title }}</strong>
-      <p>{{ toast.message }}</p>
+      <strong>{{ toast.title | t }}</strong>
+      <p>{{ toast.message | t }}</p>
     </div>
-    <button class="ae-feedback-close" type="button" aria-label="Dismiss notification" (click)="feedback.dismissToast()">×</button>
+    <button class="ae-feedback-close" type="button" [attr.aria-label]="'Dismiss notification' | t" (click)="feedback.dismissToast()">×</button>
   </aside>
 }
 
@@ -28,17 +28,17 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
           }
         </div>
-        <button class="ae-feedback-close" type="button" aria-label="Close dialog" (click)="feedback.close(false)">×</button>
+        <button class="ae-feedback-close" type="button" [attr.aria-label]="'Close dialog' | t" (click)="feedback.close(false)">×</button>
       </div>
-      <h2 id="ae-feedback-title">{{ dialog.title }}</h2>
-      <p id="ae-feedback-message">{{ dialog.message }}</p>
+      <h2 id="ae-feedback-title">{{ dialog.title | t }}</h2>
+      <p id="ae-feedback-message">{{ dialog.message | t }}</p>
       <div class="ae-feedback-actions">
         @if (dialog.kind === 'confirm') {
-          <button class="ae-feedback-cancel" type="button" (click)="feedback.close(false)">Cancel</button>
+          <button class="ae-feedback-cancel" type="button" (click)="feedback.close(false)">{{ "Cancel" | t }}</button>
         }
         <button #primaryAction class="ae-feedback-primary" type="button"
           [class.ae-feedback-destructive]="dialog.kind === 'confirm' && dialog.tone === 'danger'"
-          (click)="feedback.close(dialog.kind === 'confirm')">{{ dialog.confirmLabel }}</button>
+          (click)="feedback.close(dialog.kind === 'confirm')">{{ dialog.confirmLabel | t }}</button>
       </div>
     </section>
   </div>

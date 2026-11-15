@@ -1,341 +1,125 @@
-import { FeedbackService } from '../../shared/feedback/feedback.service';
-
-import {
-  Component,
-  OnInit,
-  ChangeDetectorRef,
-  inject
-} from '@angular/core';
-
 import { CommonModule, DatePipe } from '@angular/common';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
 import { ApprovalService } from '../../services/approval';
+import { FeedbackService } from '../../shared/feedback/feedback.service';
+import { TranslateTextPipe } from '../../shared/translate-text.pipe';
 
 @Component({
   selector: 'app-approvals',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    DatePipe
-  ],
-  templateUrl: './approvals.html'
+  imports: [CommonModule, FormsModule, DatePipe, TranslateTextPipe],
+  templateUrl: './approvals.html',
 })
 export class Approvals implements OnInit {
-  private readonly uiFeedback = inject(FeedbackService);
-
-  // Centralized notification: the old inline banner reads an empty value.
-  // The original assignments still work and now open AttendEase feedback.
-  get error(): string { return ''; }
-  set error(value: string) {
-    if (value) this.uiFeedback.error(value);
-  }
-
-  // Centralized notification: the old inline banner reads an empty value.
-  // The original assignments still work and now open AttendEase feedback.
-  get successMessage(): string { return ''; }
-  set successMessage(value: string) {
-    if (value) this.uiFeedback.success(value);
-  }
-
-
   private readonly api = inject(ApprovalService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly feedback = inject(FeedbackService);
 
-  // Tabs
-  activeTab: 'late' | 'corrections' = 'late';
-
-  // Data
   approvals: any[] = [];
-  corrections: any[] = [];
-
-  // Separate loading states
   loadingApprovals = false;
-  loadingCorrections = false;
-
-  // Messages
-  
-  
-
-  // Actions
   busyId = '';
-  rejectionReason = '';
+  rejectingId: string | null = null;
+  rejectionReasons: Record<string, string> = {};
 
   ngOnInit(): void {
-    this.load();
-  }
-
-  // ==========================================
-  // LOAD BOTH REQUEST LISTS
-  // ==========================================
-
-  load(): void {
-    this.error = '';
-    this.successMessage = '';
-
     this.loadApprovals();
-    this.loadCorrections();
   }
 
-  // ==========================================
-  // LOAD LATE ARRIVAL APPROVALS
-  // ==========================================
-
-  private loadApprovals(): void {
-
-    this.loadingApprovals = true;
-
-    this.api.getPendingApprovals()
-      .pipe(
-        finalize(() => {
-          this.loadingApprovals = false;
-          this.cdr.detectChanges();
-        })
-      )
-      .subscribe({
-
-        next: (response: any) => {
-
-          console.log(
-            'Pending approvals API response:',
-            response
-          );
-
-          this.approvals = this.normalizeResponse(
-            response,
-            'approvals'
-          );
-
-          this.cdr.detectChanges();
-        },
-
-        error: (error) => {
-
-          console.error(
-            'Pending approvals API error:',
-            error
-          );
-
-          this.error =
-            error?.error?.message ||
-            'Unable to load pending approvals.';
-
-          this.cdr.detectChanges();
-        }
-
-      });
-  }
-
-  // ==========================================
-  // LOAD ATTENDANCE CORRECTIONS
-  // ==========================================
-
-  private loadCorrections(): void {
-
-    this.loadingCorrections = true;
-
-    this.api.getPendingCorrections()
-      .pipe(
-        finalize(() => {
-          this.loadingCorrections = false;
-          this.cdr.detectChanges();
-        })
-      )
-      .subscribe({
-
-        next: (response: any) => {
-
-          console.log(
-            'Pending corrections API response:',
-            response
-          );
-
-          this.corrections = this.normalizeResponse(
-            response,
-            'corrections'
-          );
-
-          this.cdr.detectChanges();
-        },
-
-        error: (error) => {
-
-          console.error(
-            'Pending corrections API error:',
-            error
-          );
-
-          this.error =
-            error?.error?.message ||
-            'Unable to load correction requests.';
-
-          this.cdr.detectChanges();
-        }
-
-      });
-  }
-
-  // ==========================================
-  // NORMALIZE API RESPONSE
-  // ==========================================
-
-  private normalizeResponse(
-    response: any,
-    type: 'approvals' | 'corrections'
-  ): any[] {
-
-    if (Array.isArray(response)) {
-      return response;
-    }
-
-    if (Array.isArray(response?.data)) {
-      return response.data;
-    }
-
-    if (Array.isArray(response?.items)) {
-      return response.items;
-    }
-
-    if (Array.isArray(response?.requests)) {
-      return response.requests;
-    }
-
-    if (Array.isArray(response?.[type])) {
-      return response[type];
-    }
-
-    if (Array.isArray(response?.data?.items)) {
-      return response.data.items;
-    }
-
-    console.warn(
-      `Unexpected ${type} response structure:`,
-      response
-    );
-
+  private normalizeApprovals(response: any): any[] {
+    if (Array.isArray(response)) return response;
+    if (Array.isArray(response?.data)) return response.data;
+    if (Array.isArray(response?.items)) return response.items;
+    if (Array.isArray(response?.requests)) return response.requests;
+    if (Array.isArray(response?.approvals)) return response.approvals;
+    if (Array.isArray(response?.data?.items)) return response.data.items;
     return [];
   }
 
-  // ==========================================
-  // APPROVE / REJECT REQUEST
-  // ==========================================
+  private loadApprovals(): void {
+    this.loadingApprovals = true;
+    this.api.getPendingApprovals().pipe(
+      finalize(() => {
+        this.loadingApprovals = false;
+        this.cdr.markForCheck();
+      }),
+    ).subscribe({
+      next: response => {
+        this.approvals = this.normalizeApprovals(response);
+        this.cdr.markForCheck();
+      },
+      error: error => {
+        this.feedback.error(error?.error?.message || 'Unable to load pending approvals.');
+        this.cdr.markForCheck();
+      },
+    });
+  }
 
-  review(
-    kind: 'late' | 'correction',
-    item: any,
-    action: 'APPROVE' | 'REJECT'
-  ): void {
+  beginReject(item: any): void {
+    if (this.busyId || !item?.id) return;
+    this.rejectingId = item.id;
+    this.rejectionReasons[item.id] ??= '';
+  }
 
-    const reason = this.rejectionReason.trim();
+  cancelReject(): void {
+    if (this.busyId) return;
+    this.rejectingId = null;
+  }
 
-    if (action === 'REJECT' && !reason) {
-
-      this.error =
-        'Please enter a rejection reason.';
-
-      this.cdr.detectChanges();
-      return;
-    }
-
-    if (this.busyId) {
-      return;
-    }
-
+  review(item: any, action: 'APPROVE' | 'REJECT'): void {
+    if (this.busyId) return;
     const id = item?.id;
-
     if (!id) {
+      this.feedback.error('Invalid request ID.');
+      return;
+    }
 
-      this.error = 'Invalid request ID.';
-
-      this.cdr.detectChanges();
+    const rejectionReason = (this.rejectionReasons[id] || '').trim();
+    if (action === 'REJECT' && !rejectionReason) {
+      this.feedback.error('Please enter a rejection reason.');
       return;
     }
 
     this.busyId = id;
-    this.error = '';
-
-    const body = {
+    this.api.reviewApproval(id, {
       action,
-      rejectionReason:
-        action === 'REJECT'
-          ? reason
-          : undefined
-    };
-
-    const request =
-      kind === 'late'
-        ? this.api.reviewApproval(id, body)
-        : this.api.reviewCorrection(id, body);
-
-    request.pipe(
+      rejectionReason: action === 'REJECT' ? rejectionReason : undefined,
+    }).pipe(
       finalize(() => {
         this.busyId = '';
-        this.cdr.detectChanges();
-      })
+        this.cdr.markForCheck();
+      }),
     ).subscribe({
-
       next: () => {
-
-        this.successMessage =
-          action === 'APPROVE'
-            ? 'Request approved successfully.'
-            : 'Request rejected successfully.';
-
-        this.rejectionReason = '';
-
-        this.cdr.detectChanges();
-
-        // Reload both lists after successful review.
-        this.load();
+        this.feedback.success(action === 'APPROVE'
+          ? 'Request approved successfully.'
+          : 'Request rejected successfully.');
+        delete this.rejectionReasons[id];
+        if (this.rejectingId === id) this.rejectingId = null;
+        // Remove the completed request immediately; re-fetch remaining pending requests.
+        this.approvals = this.approvals.filter(approval => approval.id !== id);
+        this.loadApprovals();
       },
-
-      error: (error) => {
-
-        console.error(
-          'Review request error:',
-          error
-        );
-
-        this.error =
-          error?.error?.message ||
-          'Unable to submit this decision.';
-
-        this.cdr.detectChanges();
-      }
-
+      error: error => {
+        this.feedback.error(error?.error?.message || 'Unable to submit this decision.');
+        this.cdr.markForCheck();
+      },
     });
   }
 
-  // ==========================================
-  // EMPLOYEE NAME
-  // ==========================================
-
   employee(item: any): string {
-
-    const profile =
-      item?.attendanceRecord?.employeeProfile ??
-      item?.employeeProfile;
-
-    return [
-      profile?.firstName,
-      profile?.lastName
-    ]
-      .filter(Boolean)
-      .join(' ') ||
-      profile?.user?.email ||
-      'Employee';
+    const profile = item?.attendanceRecord?.employeeProfile ?? item?.employeeProfile;
+    return [profile?.firstName, profile?.lastName].filter(Boolean).join(' ')
+      || profile?.user?.email || 'Employee';
   }
 
-  // ==========================================
-  // REQUEST DATE
-  // ==========================================
+  date(item: any): string | null {
+    return item?.punchInAt ?? item?.createdAt ?? null;
+  }
 
-  date(item: any): any {
-
-    return item?.punchInAt ??
-      item?.requestedPunchInAt ??
-      item?.createdAt;
+  submittedReason(item: any): string {
+    return item?.lateReason?.trim() || 'No reason submitted';
   }
 }

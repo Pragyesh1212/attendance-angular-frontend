@@ -98,6 +98,13 @@ export const routes: Routes = [
         data: { roles: ['SUPER_ADMIN', 'ADMIN'] }
       },
       {
+        path: 'employees/:id/attendance',
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'SUPER_ADMIN'] },
+        loadComponent: () => import('./components/employee-attendance-details/employee-attendance-details')
+          .then(m => m.EmployeeAttendanceDetails)
+      },
+      {
         path: 'employees',
         component: Employees
       }

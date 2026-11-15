@@ -10,14 +10,15 @@
       </a>
 
       <nav class="hidden items-center gap-8 md:flex">
-        <a href="#home" class="text-sm font-semibold text-blue-700">Home</a>
-        <a href="#features" class="text-sm font-medium text-slate-600 transition hover:text-blue-700">Features</a>
-        <a href="#about" class="text-sm font-medium text-slate-600 transition hover:text-blue-700">About</a>
-        <a href="#access" class="text-sm font-medium text-slate-600 transition hover:text-blue-700">Login</a>
+        <app-language-selector />
+        <a href="#home" class="text-sm font-semibold text-blue-700">{{ "Home" | t }}</a>
+        <a href="#features" class="text-sm font-medium text-slate-600 transition hover:text-blue-700">{{ "Features" | t }}</a>
+        <a href="#about" class="text-sm font-medium text-slate-600 transition hover:text-blue-700">{{ "About" | t }}</a>
+        <a href="#access" class="text-sm font-medium text-slate-600 transition hover:text-blue-700">{{ "Login" | t }}</a>
       </nav>
 
       <a href="#access" class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700">
-        Get Started →
+        {{ "Get Started →" | t }}
       </a>
     </div>
   </header>
@@ -30,31 +31,31 @@
         <div>
           <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-4 py-2 text-xs font-bold tracking-wider text-blue-700 shadow-sm">
             <span class="h-2 w-2 rounded-full bg-green-500"></span>
-            SMART ATTENDANCE MANAGEMENT SYSTEM
+            {{ "SMART ATTENDANCE MANAGEMENT SYSTEM" | t }}
           </div>
 
           <h1 class="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
-            Manage Your Workforce.
-            <span class="text-blue-600">Simplify Attendance.</span>
+            {{ "Manage Your Workforce." | t }}
+            <span class="text-blue-600">{{ "Simplify Attendance." | t }}</span>
           </h1>
 
           <p class="mt-6 max-w-xl text-lg leading-8 text-slate-600">
-            A centralized attendance management platform designed to simplify employee management, track working hours, monitor attendance, manage approvals, and generate insightful reports.
+            {{ "A centralized attendance management platform designed to simplify employee management, track working hours, monitor attendance, manage approvals, and generate insightful reports." | t }}
           </p>
 
           <div class="mt-9 flex flex-wrap gap-4">
             <a href="#access" class="rounded-xl bg-blue-600 px-7 py-3.5 font-semibold text-white shadow-lg shadow-blue-600/25 transition hover:-translate-y-0.5 hover:bg-blue-700">
-              Get Started →
+              {{ "Get Started →" | t }}
             </a>
             <a href="#features" class="rounded-xl border border-slate-300 bg-white px-7 py-3.5 font-semibold text-slate-700 transition hover:border-blue-500 hover:text-blue-700">
-              Explore Features
+              {{ "Explore Features" | t }}
             </a>
           </div>
 
           <div class="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-slate-600">
-            <span>✓ Easy to use</span>
-            <span>✓ Secure access</span>
-            <span>✓ Centralized management</span>
+            <span>{{ "✓ Easy to use" | t }}</span>
+            <span>{{ "✓ Secure access" | t }}</span>
+            <span>{{ "✓ Centralized management" | t }}</span>
           </div>
         </div>
 
@@ -63,52 +64,52 @@
           <div class="rounded-3xl border border-blue-100 bg-white p-6 shadow-2xl shadow-blue-900/10 sm:p-8">
             <div class="flex items-start justify-between gap-4">
               <div>
-                <p class="text-xs font-bold tracking-widest text-blue-600">ATTENDANCE MANAGEMENT</p>
-                <h2 class="mt-2 text-2xl font-bold text-slate-900">Workforce Dashboard</h2>
+                <p class="text-xs font-bold tracking-widest text-blue-600">{{ "ATTENDANCE MANAGEMENT" | t }}</p>
+                <h2 class="mt-2 text-2xl font-bold text-slate-900">{{ "Workforce Dashboard" | t }}</h2>
               </div>
-              <span class="rounded-full bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700">● Platform</span>
+              <span class="rounded-full bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700">{{ "● Platform" | t }}</span>
             </div>
 
-            <p class="mt-3 text-sm text-slate-500">Your organization's workforce at a glance</p>
+            <p class="mt-3 text-sm text-slate-500">{{ "Your organization's workforce at a glance" | t }}</p>
 
             <div class="mt-7 grid grid-cols-2 gap-4">
               <div class="rounded-2xl bg-blue-50 p-4">
                 <span class="text-2xl">♙</span>
-                <p class="mt-3 text-sm text-slate-500">Employees</p>
-                <p class="mt-1 font-bold text-slate-900">Management</p>
-                <p class="mt-1 text-xs text-slate-500">Manage employee profiles</p>
+                <p class="mt-3 text-sm text-slate-500">{{ "Employees" | t }}</p>
+                <p class="mt-1 font-bold text-slate-900">{{ "Management" | t }}</p>
+                <p class="mt-1 text-xs text-slate-500">{{ "Manage employee profiles" | t }}</p>
               </div>
               <div class="rounded-2xl bg-green-50 p-4">
                 <span class="text-2xl">✓</span>
-                <p class="mt-3 text-sm text-slate-500">Attendance</p>
-                <p class="mt-1 font-bold text-slate-900">Tracking</p>
-                <p class="mt-1 text-xs text-slate-500">Daily attendance records</p>
+                <p class="mt-3 text-sm text-slate-500">{{ "Attendance" | t }}</p>
+                <p class="mt-1 font-bold text-slate-900">{{ "Tracking" | t }}</p>
+                <p class="mt-1 text-xs text-slate-500">{{ "Daily attendance records" | t }}</p>
               </div>
               <div class="rounded-2xl bg-orange-50 p-4">
                 <span class="text-2xl">◷</span>
-                <p class="mt-3 text-sm text-slate-500">Working Hours</p>
-                <p class="mt-1 font-bold text-slate-900">Monitoring</p>
-                <p class="mt-1 text-xs text-slate-500">Track employee sessions</p>
+                <p class="mt-3 text-sm text-slate-500">{{ "Working Hours" | t }}</p>
+                <p class="mt-1 font-bold text-slate-900">{{ "Monitoring" | t }}</p>
+                <p class="mt-1 text-xs text-slate-500">{{ "Track employee sessions" | t }}</p>
               </div>
               <div class="rounded-2xl bg-purple-50 p-4">
                 <span class="text-2xl">▥</span>
-                <p class="mt-3 text-sm text-slate-500">Reports</p>
-                <p class="mt-1 font-bold text-slate-900">Analytics</p>
-                <p class="mt-1 text-xs text-slate-500">Attendance insights</p>
+                <p class="mt-3 text-sm text-slate-500">{{ "Reports" | t }}</p>
+                <p class="mt-1 font-bold text-slate-900">{{ "Analytics" | t }}</p>
+                <p class="mt-1 text-xs text-slate-500">{{ "Attendance insights" | t }}</p>
               </div>
             </div>
 
             <div class="mt-6 flex items-center gap-3 rounded-xl border border-slate-100 p-4">
               <span class="flex h-9 w-9 items-center justify-center rounded-full bg-green-100 font-bold text-green-700">✓</span>
               <div>
-                <p class="font-semibold text-slate-800">Everything in one place</p>
-                <p class="text-xs text-slate-500">One platform for workforce management</p>
+                <p class="font-semibold text-slate-800">{{ "Everything in one place" | t }}</p>
+                <p class="text-xs text-slate-500">{{ "One platform for workforce management" | t }}</p>
               </div>
             </div>
           </div>
 
           <div class="absolute -bottom-5 -left-5 hidden rounded-xl border border-slate-100 bg-white px-5 py-3 font-semibold text-slate-700 shadow-xl sm:block">
-            <span class="mr-2 text-green-600">✓</span> Secure & Organized
+            <span class="mr-2 text-green-600">✓</span> {{ "Secure & Organized" | t }}
           </div>
         </div>
       </div>
@@ -117,12 +118,12 @@
     <!-- Features -->
     <section id="features" class="mx-auto max-w-7xl px-6 py-24 lg:px-8">
       <div class="mx-auto mb-14 max-w-2xl text-center">
-        <p class="text-sm font-bold tracking-widest text-blue-600">COMPLETE PLATFORM FEATURES</p>
+        <p class="text-sm font-bold tracking-widest text-blue-600">{{ "COMPLETE PLATFORM FEATURES" | t }}</p>
         <h2 class="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-          Everything Your Organization Needs
+          {{ "Everything Your Organization Needs" | t }}
         </h2>
         <p class="mt-5 leading-7 text-slate-600">
-          Powerful tools to manage employees, attendance, workforce operations, approvals, and organizational performance.
+          {{ "Powerful tools to manage employees, attendance, workforce operations, approvals, and organizational performance." | t }}
         </p>
       </div>
 
@@ -130,86 +131,86 @@
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-900/5">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl text-blue-700">♙</div>
-          <h3 class="mt-5 text-lg font-bold text-slate-900">Employee Management</h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Create, view, update, deactivate and reactivate employee profiles. Maintain centralized employee information.</p>
+          <h3 class="mt-5 text-lg font-bold text-slate-900">{{ "Employee Management" | t }}</h3>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ "Create, view, update, deactivate and reactivate employee profiles. Maintain centralized employee information." | t }}</p>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-900/5">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100 text-2xl text-purple-700">♛</div>
-          <h3 class="mt-5 text-lg font-bold text-slate-900">Admin Management</h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Super Admin can create and manage administrator accounts and control administrative access.</p>
+          <h3 class="mt-5 text-lg font-bold text-slate-900">{{ "Admin Management" | t }}</h3>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ "Super Admin can create and manage administrator accounts and control administrative access." | t }}</p>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-900/5">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-100 text-2xl text-cyan-700">▦</div>
-          <h3 class="mt-5 text-lg font-bold text-slate-900">Department Management</h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Create, update and manage departments. Organize and filter employees according to their departments.</p>
+          <h3 class="mt-5 text-lg font-bold text-slate-900">{{ "Department Management" | t }}</h3>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ "Create, update and manage departments. Organize and filter employees according to their departments." | t }}</p>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-900/5">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 text-2xl text-orange-700">◷</div>
-          <h3 class="mt-5 text-lg font-bold text-slate-900">Shift Management</h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Create work shifts, configure working schedules and assign shifts to employees.</p>
+          <h3 class="mt-5 text-lg font-bold text-slate-900">{{ "Shift Management" | t }}</h3>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ "Create work shifts, configure working schedules and assign shifts to employees." | t }}</p>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-900/5">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-2xl text-green-700">⌖</div>
-          <h3 class="mt-5 text-lg font-bold text-slate-900">Work Location Management</h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Manage organizational work locations and assign permanent or temporary locations to employees.</p>
+          <h3 class="mt-5 text-lg font-bold text-slate-900">{{ "Work Location Management" | t }}</h3>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ "Manage organizational work locations and assign permanent or temporary locations to employees." | t }}</p>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-900/5">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl text-blue-700">✓</div>
-          <h3 class="mt-5 text-lg font-bold text-slate-900">Daily Attendance Tracking</h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Record employee punch-in and punch-out activities and access individual attendance history.</p>
+          <h3 class="mt-5 text-lg font-bold text-slate-900">{{ "Daily Attendance Tracking" | t }}</h3>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ "Record employee punch-in and punch-out activities and access individual attendance history." | t }}</p>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-900/5">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 text-2xl text-orange-700">⏱</div>
-          <h3 class="mt-5 text-lg font-bold text-slate-900">Attendance Monitoring</h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Monitor late arrivals, attendance sessions, working hours and missing punch-out records.</p>
+          <h3 class="mt-5 text-lg font-bold text-slate-900">{{ "Attendance Monitoring" | t }}</h3>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ "Monitor late arrivals, attendance sessions, working hours and missing punch-out records." | t }}</p>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-900/5">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-pink-100 text-2xl text-pink-700">↻</div>
-          <h3 class="mt-5 text-lg font-bold text-slate-900">Attendance Corrections</h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Employees can submit attendance correction requests and track their request status.</p>
+          <h3 class="mt-5 text-lg font-bold text-slate-900">{{ "Attendance Corrections" | t }}</h3>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ "Employees can submit attendance correction requests and track their request status." | t }}</p>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-900/5">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-2xl text-green-700">☑</div>
-          <h3 class="mt-5 text-lg font-bold text-slate-900">Attendance Approvals</h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Admins can review pending attendance approvals and correction requests and take appropriate action.</p>
+          <h3 class="mt-5 text-lg font-bold text-slate-900">{{ "Attendance Approvals" | t }}</h3>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ "Admins can review pending attendance approvals and correction requests and take appropriate action." | t }}</p>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-900/5">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100 text-2xl text-purple-700">▥</div>
-          <h3 class="mt-5 text-lg font-bold text-slate-900">Dashboard & Analytics</h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600">View attendance overviews, monthly attendance trends, personal statistics and department statistics.</p>
+          <h3 class="mt-5 text-lg font-bold text-slate-900">{{ "Dashboard & Analytics" | t }}</h3>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ "View attendance overviews, monthly attendance trends, personal statistics and department statistics." | t }}</p>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-900/5">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-100 text-2xl text-cyan-700">▤</div>
-          <h3 class="mt-5 text-lg font-bold text-slate-900">Reports & Export</h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Generate attendance reports and export attendance data for reporting and further analysis.</p>
+          <h3 class="mt-5 text-lg font-bold text-slate-900">{{ "Reports & Export" | t }}</h3>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ "Generate attendance reports and export attendance data for reporting and further analysis." | t }}</p>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-900/5">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 text-2xl text-orange-700">♧</div>
-          <h3 class="mt-5 text-lg font-bold text-slate-900">Notifications</h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600">View system notifications, monitor unread notification counts and mark notifications as read.</p>
+          <h3 class="mt-5 text-lg font-bold text-slate-900">{{ "Notifications" | t }}</h3>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ "View system notifications, monitor unread notification counts and mark notifications as read." | t }}</p>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-900/5">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl text-blue-700">◉</div>
-          <h3 class="mt-5 text-lg font-bold text-slate-900">Audit Logs</h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Maintain records of important activities performed throughout the attendance management system.</p>
+          <h3 class="mt-5 text-lg font-bold text-slate-900">{{ "Audit Logs" | t }}</h3>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ "Maintain records of important activities performed throughout the attendance management system." | t }}</p>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-900/5">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100 text-2xl text-purple-700">🔐</div>
-          <h3 class="mt-5 text-lg font-bold text-slate-900">Authentication & Security</h3>
-          <p class="mt-3 text-sm leading-6 text-slate-600">Secure login, access token validation, refresh token management and role-based permissions.</p>
+          <h3 class="mt-5 text-lg font-bold text-slate-900">{{ "Authentication & Security" | t }}</h3>
+          <p class="mt-3 text-sm leading-6 text-slate-600">{{ "Secure login, access token validation, refresh token management and role-based permissions." | t }}</p>
         </article>
 
       </div>
@@ -219,25 +220,25 @@
     <section id="about" class="border-y border-slate-100 bg-slate-50">
       <div class="mx-auto grid max-w-7xl gap-12 px-6 py-24 lg:grid-cols-2 lg:items-center lg:px-8">
         <div>
-          <p class="text-sm font-bold tracking-widest text-blue-600">ABOUT THE SYSTEM</p>
+          <p class="text-sm font-bold tracking-widest text-blue-600">{{ "ABOUT THE SYSTEM" | t }}</p>
           <h2 class="mt-4 text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl">
-            A Smarter Way to Manage Your Organization
+            {{ "A Smarter Way to Manage Your Organization" | t }}
           </h2>
           <p class="mt-6 leading-8 text-slate-600">
-            AttendEase is an attendance management platform that helps organizations manage employees, maintain attendance records, monitor working hours, manage approvals and make informed decisions through centralized reporting.
+            {{ "AttendEase is an attendance management platform that helps organizations manage employees, maintain attendance records, monitor working hours, manage approvals and make informed decisions through centralized reporting." | t }}
           </p>
           <p class="mt-4 leading-8 text-slate-600">
-            With dedicated access for Super Admins, Admins and Employees, the platform provides an organized environment where every user can access the functionality relevant to their role.
+            {{ "With dedicated access for Super Admins, Admins and Employees, the platform provides an organized environment where every user can access the functionality relevant to their role." | t }}
           </p>
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2">
-          <div class="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"><span class="text-xl text-green-600">✓</span><span class="font-medium text-slate-700">Centralized employee information</span></div>
-          <div class="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"><span class="text-xl text-green-600">✓</span><span class="font-medium text-slate-700">Organized attendance records</span></div>
-          <div class="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"><span class="text-xl text-green-600">✓</span><span class="font-medium text-slate-700">Role-based access control</span></div>
-          <div class="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"><span class="text-xl text-green-600">✓</span><span class="font-medium text-slate-700">Attendance approval workflow</span></div>
-          <div class="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"><span class="text-xl text-green-600">✓</span><span class="font-medium text-slate-700">Reporting and analytics</span></div>
-          <div class="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"><span class="text-xl text-green-600">✓</span><span class="font-medium text-slate-700">Activity tracking and notifications</span></div>
+          <div class="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"><span class="text-xl text-green-600">✓</span><span class="font-medium text-slate-700">{{ "Centralized employee information" | t }}</span></div>
+          <div class="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"><span class="text-xl text-green-600">✓</span><span class="font-medium text-slate-700">{{ "Organized attendance records" | t }}</span></div>
+          <div class="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"><span class="text-xl text-green-600">✓</span><span class="font-medium text-slate-700">{{ "Role-based access control" | t }}</span></div>
+          <div class="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"><span class="text-xl text-green-600">✓</span><span class="font-medium text-slate-700">{{ "Attendance approval workflow" | t }}</span></div>
+          <div class="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"><span class="text-xl text-green-600">✓</span><span class="font-medium text-slate-700">{{ "Reporting and analytics" | t }}</span></div>
+          <div class="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm"><span class="text-xl text-green-600">✓</span><span class="font-medium text-slate-700">{{ "Activity tracking and notifications" | t }}</span></div>
         </div>
       </div>
     </section>
@@ -245,31 +246,31 @@
     <!-- Login portals -->
     <section id="access" class="mx-auto max-w-7xl px-6 py-24 lg:px-8">
       <div class="mx-auto mb-14 max-w-2xl text-center">
-        <p class="text-sm font-bold tracking-widest text-blue-600">GET STARTED</p>
-        <h2 class="mt-4 text-3xl font-extrabold text-slate-900 sm:text-4xl">Choose Your Login Portal</h2>
-        <p class="mt-5 text-slate-600">Select your account type to access the Attendance Management System.</p>
+        <p class="text-sm font-bold tracking-widest text-blue-600">{{ "GET STARTED" | t }}</p>
+        <h2 class="mt-4 text-3xl font-extrabold text-slate-900 sm:text-4xl">{{ "Choose Your Login Portal" | t }}</h2>
+        <p class="mt-5 text-slate-600">{{ "Select your account type to access the Attendance Management System." | t }}</p>
       </div>
 
       <div class="grid gap-7 md:grid-cols-3">
         <article class="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
           <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-100 text-3xl text-purple-700">♛</div>
-          <h3 class="mt-5 text-xl font-bold text-slate-900">Super Admin</h3>
-          <p class="mt-3 min-h-16 text-sm leading-6 text-slate-600">Manage administrators, organization-wide settings and overall system operations.</p>
-          <a routerLink="/login" class="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700">Access Portal →</a>
+          <h3 class="mt-5 text-xl font-bold text-slate-900">{{ "Super Admin" | t }}</h3>
+          <p class="mt-3 min-h-16 text-sm leading-6 text-slate-600">{{ "Manage administrators, organization-wide settings and overall system operations." | t }}</p>
+          <a routerLink="/login" class="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700">{{ "Access Portal →" | t }}</a>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
           <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-100 text-3xl text-blue-700">♙</div>
-          <h3 class="mt-5 text-xl font-bold text-slate-900">Admin</h3>
-          <p class="mt-3 min-h-16 text-sm leading-6 text-slate-600">Manage employees, departments, shifts, attendance records, approvals and reports.</p>
-          <a routerLink="/login" class="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700">Access Portal →</a>
+          <h3 class="mt-5 text-xl font-bold text-slate-900">{{ "Admin" | t }}</h3>
+          <p class="mt-3 min-h-16 text-sm leading-6 text-slate-600">{{ "Manage employees, departments, shifts, attendance records, approvals and reports." | t }}</p>
+          <a routerLink="/login" class="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700">{{ "Access Portal →" | t }}</a>
         </article>
 
         <article class="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
           <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-green-100 text-3xl text-green-700">♧</div>
-          <h3 class="mt-5 text-xl font-bold text-slate-900">Employee</h3>
-          <p class="mt-3 min-h-16 text-sm leading-6 text-slate-600">Access your attendance history, punch in and out, view statistics and submit correction requests.</p>
-          <a routerLink="/login" class="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700">Access Portal →</a>
+          <h3 class="mt-5 text-xl font-bold text-slate-900">{{ "Employee" | t }}</h3>
+          <p class="mt-3 min-h-16 text-sm leading-6 text-slate-600">{{ "Access your attendance history, punch in and out, view statistics and submit correction requests." | t }}</p>
+          <a routerLink="/login" class="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700">{{ "Access Portal →" | t }}</a>
         </article>
       </div>
     </section>
@@ -283,44 +284,44 @@
           <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600">✓</span>
           AttendEase
         </a>
-        <p class="mt-5 max-w-xs text-sm leading-7 text-slate-400">Making workforce and attendance management simpler, smarter and more organized.</p>
+        <p class="mt-5 max-w-xs text-sm leading-7 text-slate-400">{{ "Making workforce and attendance management simpler, smarter and more organized." | t }}</p>
       </div>
 
       <div>
-        <h3 class="mb-5 font-bold text-white">Quick Links</h3>
+        <h3 class="mb-5 font-bold text-white">{{ "Quick Links" | t }}</h3>
         <div class="flex flex-col gap-3 text-sm text-slate-400">
-          <a href="#home" class="hover:text-white">Home</a>
-          <a href="#features" class="hover:text-white">Features</a>
-          <a href="#about" class="hover:text-white">About Us</a>
-          <a href="#access" class="hover:text-white">Login</a>
+          <a href="#home" class="hover:text-white">{{ "Home" | t }}</a>
+          <a href="#features" class="hover:text-white">{{ "Features" | t }}</a>
+          <a href="#about" class="hover:text-white">{{ "About Us" | t }}</a>
+          <a href="#access" class="hover:text-white">{{ "Login" | t }}</a>
         </div>
       </div>
 
       <div>
-        <h3 class="mb-5 font-bold text-white">Management</h3>
+        <h3 class="mb-5 font-bold text-white">{{ "Management" | t }}</h3>
         <div class="flex flex-col gap-3 text-sm text-slate-400">
-          <a href="#features" class="hover:text-white">Employees</a>
-          <a href="#features" class="hover:text-white">Departments</a>
-          <a href="#features" class="hover:text-white">Shifts</a>
-          <a href="#features" class="hover:text-white">Work Locations</a>
+          <a href="#features" class="hover:text-white">{{ "Employees" | t }}</a>
+          <a href="#features" class="hover:text-white">{{ "Departments" | t }}</a>
+          <a href="#features" class="hover:text-white">{{ "Shifts" | t }}</a>
+          <a href="#features" class="hover:text-white">{{ "Work Locations" | t }}</a>
         </div>
       </div>
 
       <div>
-        <h3 class="mb-5 font-bold text-white">Attendance</h3>
+        <h3 class="mb-5 font-bold text-white">{{ "Attendance" | t }}</h3>
         <div class="flex flex-col gap-3 text-sm text-slate-400">
-          <a href="#features" class="hover:text-white">Attendance Tracking</a>
-          <a href="#features" class="hover:text-white">Corrections & Approvals</a>
-          <a href="#features" class="hover:text-white">Reports & Analytics</a>
-          <a href="#features" class="hover:text-white">Notifications</a>
+          <a href="#features" class="hover:text-white">{{ "Attendance Tracking" | t }}</a>
+          <a href="#features" class="hover:text-white">{{ "Corrections & Approvals" | t }}</a>
+          <a href="#features" class="hover:text-white">{{ "Reports & Analytics" | t }}</a>
+          <a href="#features" class="hover:text-white">{{ "Notifications" | t }}</a>
         </div>
       </div>
     </div>
 
     <div class="border-t border-slate-800">
       <div class="mx-auto flex max-w-7xl flex-col justify-between gap-3 px-6 py-6 text-xs text-slate-500 sm:flex-row lg:px-8">
-        <p>© 2026 AttendEase. All rights reserved.</p>
-        <p>Attendance Management System</p>
+        <p>{{ "© 2026 AttendEase. All rights reserved." | t }}</p>
+        <p>{{ "Attendance Management System" | t }}</p>
       </div>
     </div>
   </footer>

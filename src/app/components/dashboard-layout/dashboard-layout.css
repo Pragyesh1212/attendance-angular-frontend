@@ -117,14 +117,15 @@
 .employee-brand-icon { display: inline-flex; justify-content: center; align-items: center; width: 42px; height: 42px; border-radius: 12px; color: #fff; background: #0755f9; font-weight: 800; font-size: 27px; }
 .employee-brand-blue { color: #0755f9; }
 .employee-shell-content { max-width: 1500px; margin: 0 auto; min-width: 0; }
-.employee-profile-control { position: relative; }
+.employee-profile-control { position: relative; display: flex; align-items: center; gap: 10px; }
 .employee-profile-trigger { display: inline-flex; justify-content: flex-end; align-items: center; gap: 14px; padding: 6px; border: 0; border-radius: 13px; background: transparent; cursor: pointer; }
 .employee-profile-trigger:hover, .employee-profile-trigger[aria-expanded="true"] { background: #eff5ff; }
 .employee-profile-trigger:focus-visible, .employee-logout-item:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
 .employee-profile-name { display: flex; flex-direction: column; align-items: flex-end; min-width: 0; }
 .employee-profile-name strong { color: #111f3c; font-size: 14px; font-weight: 800; line-height: 1.25; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .employee-profile-name small { color: #58719a; font-size: 12px; margin-top: 3px; }
-.employee-profile-avatar { display: inline-flex; flex: 0 0 45px; align-items: center; justify-content: center; width: 45px; height: 45px; border-radius: 50%; background: #0755f9; color: #fff; font-size: 19px; font-weight: 800; box-shadow: 0 3px 8px rgba(7,85,249,.14); }
+.employee-profile-avatar { display: inline-flex; flex: 0 0 45px; align-items: center; justify-content: center; width: 45px; height: 45px; border-radius: 50%; overflow: hidden; background: #0755f9; color: #fff; font-size: 19px; font-weight: 800; box-shadow: 0 3px 8px rgba(7,85,249,.14); }
+.employee-profile-avatar-image { display: block; width: 100%; height: 100%; object-fit: cover; }
 .employee-profile-chevron { width: 17px; height: 17px; color: #526786; }
 .employee-profile-menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 65; min-width: 185px; padding: 6px; background: #fff; border: 1px solid #dbe5f5; border-radius: 13px; box-shadow: 0 14px 35px rgba(20, 45, 86, .15); }
 .employee-logout-item { display: inline-flex; align-items: center; gap: 10px; width: 100%; padding: 12px 13px; border: none; border-radius: 9px; background: transparent; color: #c22935; font-size: 14px; font-weight: 700; cursor: pointer; text-align: left; }
@@ -138,4 +139,105 @@
   .employee-profile-trigger { gap: 6px; }
   .employee-profile-name { display: none; }
   .employee-profile-avatar { width: 39px; height: 39px; flex-basis: 39px; font-size: 17px; }
+}
+
+
+/* Employee-only geofence exit warning. No changes to Admin / Super Admin. */
+.ea-geofence-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(18, 35, 69, .37);
+}
+.ea-geofence-dialog {
+  position: relative;
+  width: min(100%, 610px);
+  max-height: calc(100dvh - 36px);
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #dbe5f5;
+  border-radius: 24px;
+  box-shadow: 0 22px 65px rgba(12, 29, 62, .22);
+  color: #111e3d;
+}
+.ea-geofence-close {
+  position: absolute;
+  top: 17px;
+  right: 19px;
+  z-index: 2;
+  width: 43px;
+  height: 43px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #dce5f3;
+  border-radius: 13px;
+  background: #fff9fa;
+  color: #172c52;
+  cursor: pointer;
+}
+.ea-geofence-close:hover { background: #ffe8eb; }
+.ea-geofence-close:focus-visible { outline: 3px solid #7ba9ff; outline-offset: 3px; }
+.ea-geofence-close svg { width: 22px; height: 22px; }
+.ea-geofence-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 174px;
+  background: linear-gradient(180deg, #fff3f4 0%, #fff8f9 100%);
+  padding: 16px 26px 8px;
+}
+.ea-geofence-illustration { display: block; height: 135px; max-width: 100%; }
+.ea-geofence-dialog-body { padding: 27px 32px 30px; text-align: center; }
+.ea-geofence-dialog h2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  margin: 0;
+  color: #0d1e3f;
+  font-size: clamp(24px, 4vw, 33px);
+  line-height: 1.2;
+  font-weight: 800;
+}
+.ea-geofence-dialog h2 svg { flex: none; width: 34px; height: 34px; color: #f02f49; }
+.ea-geofence-dialog-body p {
+  margin: 18px auto 23px;
+  color: #263c64;
+  font-size: 16px;
+  line-height: 1.65;
+}
+.ea-geofence-details {
+  padding: 18px 20px;
+  border: 1px solid #ffd7dd;
+  border-radius: 17px;
+  background: #fff1f3;
+}
+.ea-geofence-detail-row {
+  display: grid;
+  grid-template-columns: 25px minmax(130px, 1fr) minmax(110px, 1fr);
+  gap: 11px;
+  align-items: center;
+  text-align: left;
+  padding: 5px 0;
+  font-size: 14px;
+}
+.ea-geofence-detail-row + .ea-geofence-detail-row { margin-top: 10px; }
+.ea-geofence-detail-row svg { width: 23px; height: 23px; color: #fa3951; }
+.ea-geofence-detail-row strong { color: #182d52; font-weight: 750; }
+.ea-geofence-detail-row span { color: #1a3055; overflow-wrap: anywhere; }
+@media (max-width: 520px) {
+  .ea-geofence-overlay { padding: 12px; }
+  .ea-geofence-dialog { border-radius: 18px; }
+  .ea-geofence-art { min-height: 142px; }
+  .ea-geofence-illustration { height: 112px; }
+  .ea-geofence-dialog-body { padding: 23px 17px 24px; }
+  .ea-geofence-dialog-body p { font-size: 14px; }
+  .ea-geofence-details { padding: 13px 11px; }
+  .ea-geofence-detail-row { grid-template-columns: 23px 1fr; gap: 6px 9px; font-size: 13px; }
+  .ea-geofence-detail-row span { grid-column: 2; }
 }

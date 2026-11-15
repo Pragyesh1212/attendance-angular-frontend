@@ -1,0 +1,185 @@
+<div class="ed-page">
+  <nav class="ed-breadcrumb"><a routerLink="/employees">{{ "← Employees" | t }}</a><span>/</span><span>{{ report?.employee?.name || 'Employee Attendance' }}</span></nav>
+  <header class="ed-header">
+    <div><h1>{{ "Employee" | t }} <span>{{ "Attendance Details" | t }}</span></h1>
+      <p>{{ "View employee information, assigned shifts and date-wise attendance history." | t }}</p></div>
+    <div class="ed-actions" *ngIf="report">
+      <ng-container *ngIf="!editMode">
+        <button class="ed-btn ed-btn-outline" (click)="openDownload()">↓ &nbsp; Download</button>
+        <button class="ed-btn ed-btn-primary" *ngIf="canEdit" (click)="startEditing()">✎ &nbsp; Edit Attendance</button>
+      </ng-container>
+      <ng-container *ngIf="editMode">
+        <button class="ed-btn ed-btn-outline" (click)="cancelEditing()">{{ "Cancel" | t }}</button>
+        <button class="ed-btn ed-btn-primary" [disabled]="saving || !selectedDate" (click)="saveSelected()">
+          {{ (saving ? 'Saving…' : 'Save Selected Day') | t }}
+        </button>
+      </ng-container>
+    </div>
+  </header>
+  <p class="ed-alert" *ngIf="error">{{ error }}</p>
+  <div class="ed-loading" *ngIf="loading">{{ "Loading employee attendance..." | t }}</div>
+
+  <ng-container *ngIf="report as r">
+    <div class="ed-summary-grid">
+      <section class="ed-card ed-profile">
+        <div class="ed-person-head">
+          <img *ngIf="profileImageUrl; else employeeInitial" class="ed-avatar" [src]="profileImageUrl" [alt]="r.employee.name + ' photo'" />
+          <ng-template #employeeInitial><div class="ed-avatar">{{ (r.employee.name || 'E').slice(0,1) }}</div></ng-template>
+          <div><h2>{{ r.employee.name }} <span class="ed-active">{{ r.employee.status | t }}</span></h2>
+            <p>{{ r.employee.employeeCode }} · {{ r.employee.email }}</p></div>
+        </div>
+        <div class="ed-profile-cols">
+          <div class="ed-meta">
+            <div><span>{{ "Department" | t }}</span><strong>{{ r.employee.department || 'Not assigned' }}</strong></div>
+            <div><span>{{ "Designation" | t }}</span><strong>{{ r.employee.designation || '—' }}</strong></div>
+            <div><span>{{ "Phone" | t }}</span><strong>{{ r.employee.phone || '—' }}</strong></div>
+            <div><span>{{ "Work Location" | t }}</span><strong>{{ r.employee.workLocation || 'Not assigned' }}</strong></div>
+          </div>
+          <div class="ed-shifts"><h3>{{ "▣ Shift Summary" | t }}</h3>
+            <p *ngFor="let s of r.employee.shifts"><span>Shift {{ s.order }}</span>
+              {{ s.name }} ({{ s.startTime }}–{{ s.endTime }})</p>
+            <p *ngIf="r.employee.shifts.length === 0">{{ "No shift assigned" | t }}</p>
+          </div>
+        </div>
+      </section>
+      <section class="ed-card ed-device">
+        <div class="ed-card-heading"><h2>{{ "▣ Registered Devices" | t }}</h2>
+          <span class="ed-neutral">{{ (devices?.devices?.length || 0) }} records · maximum 2 active</span>
+        </div>
+        <p *ngIf="devicesLoading">{{ "Loading registered devices..." | t }}</p>
+        <p class="ed-alert" *ngIf="deviceError">{{ deviceError }}</p>
+        <p class="ed-device-note" *ngIf="!devicesLoading && !devices?.devices?.length">
+          {{ "No browser credentials registered yet. Details are captured automatically when this employee logs in." | t }}
+        </p>
+        <div class="ed-registered-device" *ngFor="let device of devices?.devices">
+          <div class="ed-registered-device-heading">
+            <strong>{{ device.label }}</strong>
+            <span class="ed-device-state" [class.ed-state-approved]="device.status === 'APPROVED'"
+              [class.ed-state-revoked]="device.status === 'REVOKED'">{{ device.status | t }}</span>
+          </div>
+          <p>{{ device.operatingSystem || 'Unknown OS' }} · {{ device.browser || 'Browser' }} · {{ device.deviceType || 'Device' }}</p>
+          <p>Registered {{ device.createdAt | date:'dd MMM yyyy, hh:mm a':'+0530' }}
+            · Last verified {{ device.lastSeenAt ? (device.lastSeenAt | date:'dd MMM yyyy, hh:mm a':'+0530') : 'Not yet' }}</p>
+          <p *ngIf="device.lastIp">Last recorded IP: {{ device.lastIp }} (not a unique device identifier)</p>
+          <div *ngIf="canEdit" class="ed-device-management">
+            <input type="text" [(ngModel)]="deviceLabels[device.id]" maxlength="120" [attr.aria-label]="'Device label for ' + device.label" />
+            <button class="ed-btn ed-btn-outline" [disabled]="devicesSaving || deviceLabels[device.id] === device.label" (click)="deviceAction(device,'rename')">{{ "Save Name" | t }}</button>
+            <button class="ed-btn ed-btn-primary" *ngIf="device.status === 'PENDING'" [disabled]="devicesSaving" (click)="deviceAction(device,'approve')">{{ "Approve" | t }}</button>
+            <button class="ed-btn ed-btn-outline" *ngIf="device.status === 'REVOKED'" [disabled]="devicesSaving" (click)="deviceAction(device,'reactivate')">{{ "Reactivate" | t }}</button>
+            <button class="ed-btn ed-btn-outline" *ngIf="device.status !== 'REVOKED' && pendingRevokeId !== device.id" [disabled]="devicesSaving" (click)="pendingRevokeId = device.id">{{ "Revoke" | t }}</button>
+          </div>
+          <div class="ed-device-confirm" *ngIf="canEdit && pendingRevokeId === device.id">
+            <span>{{ "Revoke this device? It will no longer be allowed to mark attendance." | t }}</span>
+            <button class="ed-btn ed-btn-outline" (click)="pendingRevokeId = null">{{ "Cancel" | t }}</button>
+            <button class="ed-btn ed-btn-primary" [disabled]="devicesSaving" (click)="deviceAction(device,'revoke')">{{ "Confirm revoke" | t }}</button>
+          </div>
+        </div>
+        <p class="ed-device-note">{{ "An approved browser credential is required to Punch In and Punch Out. Admin can approve, rename, revoke, or replace up to 2 active registrations." | t }}</p>
+      </section>
+    </div>
+
+    <section class="ed-card ed-attendance">
+      <div class="ed-table-heading">
+        <div><h2>▣ {{ (editMode ? 'Edit Monthly Attendance' : 'Monthly Attendance Records') | t }}</h2>
+          <p *ngIf="editMode">{{ "Edit one day using its row controls, or select several dates and apply Weekend/Holiday/Workday in one action. Changes are audited." | t }}</p></div>
+        <div class="ed-filter-controls">
+          <label class="ed-month-label" for="ed-month">{{ "Month" | t }}</label>
+          <input id="ed-month" type="month" [ngModel]="month" (ngModelChange)="onMonthChange($event)" [disabled]="saving" />
+          <select [(ngModel)]="filter" [attr.aria-label]="'Filter attendance by status' | t" *ngIf="!editMode">
+            <option value="ALL">{{ "All statuses" | t }}</option><option value="PRESENT">{{ "Present" | t }}</option>
+            <option value="LATE">{{ "Late" | t }}</option><option value="ABSENT">{{ "Absent" | t }}</option>
+            <option value="WEEKEND">{{ "Weekend" | t }}</option><option value="HOLIDAY">{{ "Holiday" | t }}</option>
+            <option value="NO_RECORD">{{ "No record" | t }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="ed-summary-strip" *ngIf="!loading && r.month === month">
+        <div><span>{{ "Present" | t }}</span><strong>{{ r.summary.present }}</strong></div>
+        <div><span>{{ "Late" | t }}</span><strong>{{ r.summary.late }}</strong></div>
+        <div><span>{{ "Absent" | t }}</span><strong>{{ r.summary.absent }}</strong></div>
+        <div><span>{{ "Weekends" | t }}</span><strong>{{ r.summary.weekend }}</strong></div>
+        <div><span>{{ "Holidays" | t }}</span><strong>{{ r.summary.holiday }}</strong></div>
+      </div>
+      <div *ngIf="editMode && !loading && r.month === month" class="ed-tools">
+        <button class="ed-btn ed-btn-outline" (click)="addAttendanceEntry()">{{ "+ Add Attendance Entry" | t }}</button>
+        <span class="ed-selected-count" aria-live="polite">{{ selectedCount }} date{{ (selectedCount === 1 ? '' : 's') | t }} selected</span>
+        <button class="ed-btn ed-btn-outline" [disabled]="saving || !selectedCount" (click)="markSelected('WEEKEND')">{{ "Mark selected as Weekend" | t }}</button>
+        <button class="ed-btn ed-btn-outline" [disabled]="saving || !selectedCount" (click)="markSelected('HOLIDAY')">{{ "Mark selected as Holiday" | t }}</button>
+        <button class="ed-btn ed-btn-outline" [disabled]="saving || !selectedCount" (click)="markSelected('WORKDAY')">{{ "Restore selected to Workday" | t }}</button>
+        <button class="ed-btn ed-btn-outline" [disabled]="saving || !selectedCount" (click)="clearBulkSelection()">{{ "Clear selection" | t }}</button>
+        <span>{{ "Tick dates (or Select All) for a bulk update. These actions save immediately and are audited. Individual times still use each row's Save button." | t }}</span>
+      </div>
+      <div class="ed-table-scroll" *ngIf="!loading && r.month === month">
+        <table>
+          <thead><tr><th *ngIf="editMode" class="ed-checkbox-col">
+              <input #allDatesCheckbox type="checkbox" [checked]="allVisibleSelected"
+                [disabled]="saving || !visibleDays.length" (change)="toggleAllVisible(allDatesCheckbox.checked)"
+                [attr.aria-label]="'Select all displayed dates' | t" [attr.title]="'Select all displayed dates' | t" />
+            </th><th>{{ "Date" | t }}</th><th>{{ "Day" | t }}</th>
+            <ng-container *ngFor="let shift of shiftNumbers">
+              <th>{{ (r.maxShift === 1 ? 'Punch In' : 'Shift ' + shift + ' In') | t }}</th>
+              <th>{{ (r.maxShift === 1 ? 'Punch Out' : 'Shift ' + shift + ' Out') | t }}</th>
+            </ng-container>
+            <th [attr.title]="'Completed approved work sessions' | t">{{ "Working Hours" | t }}</th><th>{{ "Status / Day Type" | t }}</th><th>{{ "Remarks" | t }}</th><th *ngIf="editMode">{{ "Action" | t }}</th>
+          </tr></thead>
+          <tbody><tr *ngFor="let d of visibleDays" [class.ed-weekend]="(editMode ? editing[d.date].dayType : d.dayType) === 'WEEKEND'"
+            [class.ed-holiday]="(editMode ? editing[d.date].dayType : d.dayType) === 'HOLIDAY'"
+            [class.ed-selected]="editMode && selectedDate === d.date" (click)="editMode && selectDate(d.date)">
+            <td *ngIf="editMode" class="ed-checkbox-col">
+              <input #dateCheckbox type="checkbox" [checked]="selectedDates.has(d.date)" [disabled]="saving"
+                (change)="toggleDate(d.date, dateCheckbox.checked)" (click)="$event.stopPropagation()"
+                [attr.aria-label]="'Select ' + d.date + ' for bulk update'" />
+            </td>
+            <td class="ed-date">{{ (d.date + 'T12:00:00Z') | date:'dd MMM yyyy':'UTC' }}</td><td>{{ d.weekday }}</td>
+            <ng-container *ngFor="let shift of shiftNumbers">
+              <ng-container *ngIf="!editMode"><td>{{ showTime(d,shift,'punchIn') }}</td><td>{{ showTime(d,shift,'punchOut') }}</td></ng-container>
+              <ng-container *ngIf="editMode">
+                <td><input type="time" [(ngModel)]="editing[d.date].shifts[shift-1].punchIn"
+                  [disabled]="editing[d.date].dayType !== 'WORKDAY'" [attr.aria-label]="d.date + ' shift ' + shift + ' Punch In'"/></td>
+                <td><input type="time" [(ngModel)]="editing[d.date].shifts[shift-1].punchOut"
+                  [disabled]="editing[d.date].dayType !== 'WORKDAY'" [attr.aria-label]="d.date + ' shift ' + shift + ' Punch Out'"/>
+</td>
+              </ng-container>
+            </ng-container>
+            <td class="ed-work-hours" [title]="d.workingHours === '—' ? 'No completed work session' : 'Completed working time'">{{ d.workingHours }}</td>
+            <td *ngIf="!editMode"><span class="ed-tag" [class.ed-weekend-tag]="d.status==='WEEKEND'" [class.ed-holiday-tag]="d.status==='HOLIDAY'">{{ d.status.replace('_',' ') | t }}</span></td>
+            <td *ngIf="editMode" class="ed-day-select">
+              <select [(ngModel)]="editing[d.date].dayType" [attr.aria-label]="d.date + ' day type'">
+                <option value="WORKDAY">{{ "Workday" | t }}</option><option value="WEEKEND">{{ "Weekend" | t }}</option><option value="HOLIDAY">{{ "Holiday" | t }}</option>
+              </select>
+              <select [(ngModel)]="editing[d.date].status" *ngIf="editing[d.date].dayType === 'WORKDAY'" [attr.aria-label]="d.date + ' attendance status'">
+                <option value="NO_RECORD">{{ "No record" | t }}</option><option value="UPCOMING">{{ "Upcoming" | t }}</option>
+                <option value="PRESENT">{{ "Present" | t }}</option><option value="LATE">{{ "Late" | t }}</option><option value="HALF_DAY">{{ "Half Day" | t }}</option>
+                <option value="ABSENT">{{ "Absent" | t }}</option><option value="ON_LEAVE">{{ "On Leave" | t }}</option>
+              </select>
+            </td>
+            <td *ngIf="!editMode" class="ed-note">{{ d.note || '—' }}</td>
+            <td *ngIf="editMode"><input type="text" maxlength="500" [(ngModel)]="editing[d.date].note" [placeholder]="'Remarks' | t"
+              [attr.aria-label]="d.date + ' remarks'"/></td>
+            <td *ngIf="editMode"><button class="ed-row-save" [disabled]="saving" (click)="selectDate(d.date); saveDay(d); $event.stopPropagation()">{{ "Save" | t }}</button></td>
+          </tr></tbody>
+        </table>
+      </div>
+      <div class="ed-legend" *ngIf="!loading && r.month === month"><span><i class="ed-swatch ed-w"></i> {{ "Weekend — non-working day" | t }}</span>
+        <span><i class="ed-swatch ed-h"></i> {{ "Holiday — non-working day" | t }}</span>
+        <span>All {{ r.days.length }} dates for {{ selectedMonthText }} are included.</span></div>
+    </section>
+  </ng-container>
+
+  <div class="ed-modal-backdrop" *ngIf="showDownload" (click)="showDownload=false">
+    <section class="ed-download" role="dialog" aria-modal="true" aria-labelledby="ed-download-title" (click)="$event.stopPropagation()">
+      <button class="ed-modal-close" (click)="showDownload=false" [attr.aria-label]="'Close' | t">×</button>
+      <h2 id="ed-download-title">↓ &nbsp; Download Attendance Report</h2>
+      <p>Export {{ report?.employee?.name }}'s attendance for {{ selectedMonthText }}.</p>
+      <div class="ed-export-employee"><strong>{{ report?.employee?.name }}</strong> · {{ report?.employee?.employeeCode }} · {{ report?.employee?.department || 'No department' }}</div>
+      <label class="ed-export-label" for="ed-export-month">{{ "Selected month" | t }}</label>
+      <input id="ed-export-month" type="month" [ngModel]="month" (ngModelChange)="onMonthChange($event)"/>
+      <label class="ed-export-label">{{ "Select format" | t }}</label>
+      <div class="ed-format-grid"><label [class.ed-picked]="exportFormat==='xlsx'"><input type="radio" name="fileformat" [(ngModel)]="exportFormat" value="xlsx"/> {{ "Excel (.xlsx)" | t }}</label>
+        <label [class.ed-picked]="exportFormat==='pdf'"><input type="radio" name="fileformat" [(ngModel)]="exportFormat" value="pdf"/> {{ "PDF (.pdf)" | t }}</label></div>
+      <div class="ed-includes"><strong>{{ "Includes" | t }}</strong><p>{{ "Employee details · Selected month · Shift-wise attendance · Working hours · Highlighted weekends and holidays" | t }}</p></div>
+      <div class="ed-modal-actions"><button class="ed-btn ed-btn-outline" (click)="showDownload=false">{{ "Cancel" | t }}</button>
+        <button class="ed-btn ed-btn-primary" [disabled]="downloading || loading || !report || report.month !== month" (click)="download()">{{ (downloading ? 'Preparing…' : 'Download Report') | t }}</button></div>
+    </section>
+  </div>
+</div>

@@ -8,31 +8,104 @@
       </a>
 
       <div class="employee-profile-control">
+        <app-language-selector />
         <button type="button" class="employee-profile-trigger"
           aria-haspopup="menu" [attr.aria-expanded]="profileMenuOpen"
           (click)="toggleProfileMenu()">
           <span class="employee-profile-name">
             <strong>{{ employeeDisplayName }}</strong>
-            <small>{{ roleName }}</small>
+            <small>{{ roleName | t }}</small>
           </span>
-          <span class="employee-profile-avatar" aria-hidden="true">{{ userInitial }}</span>
+          <span class="employee-profile-avatar" aria-hidden="true">
+            @if (employeeAvatarSrc) {
+              <img [src]="employeeAvatarSrc" class="employee-profile-avatar-image" alt="" />
+            } @else {
+              {{ userInitial }}
+            }
+          </span>
           <svg class="employee-profile-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
         </button>
 
         @if (profileMenuOpen) {
-          <div class="employee-profile-menu" role="menu" aria-label="Account options">
+          <div class="employee-profile-menu" role="menu" [attr.aria-label]="'Account options' | t">
             <button type="button" role="menuitem" class="employee-logout-item"
               [disabled]="isLoggingOut" (click)="logout()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/>
               </svg>
-              {{ isLoggingOut ? 'Logging out...' : 'Logout' }}
+              {{ (isLoggingOut ? "Logging out..." : "Logout") | t }}
             </button>
           </div>
         }
       </div>
     </header>
     <main class="employee-shell-content"><router-outlet /></main>
+
+    @if (locationAlert; as alert) {
+      <div class="ea-geofence-overlay">
+        <section class="ea-geofence-dialog" role="alertdialog"
+          aria-modal="true" aria-labelledby="ea-location-alert-title"
+          aria-describedby="ea-location-alert-message">
+          <button type="button" class="ea-geofence-close"
+            (click)="dismissLocationAlert()" [attr.aria-label]="'Close location warning' | t">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
+          </button>
+
+          <div class="ea-geofence-art" aria-hidden="true">
+            <svg class="ea-geofence-illustration" viewBox="0 0 250 105" fill="none">
+              <ellipse cx="93" cy="79" rx="57" ry="19" stroke="#f43f5e" stroke-width="2.2"
+                stroke-dasharray="7 6" fill="#ffe5e9"/>
+              <path d="M93 21c-17 0-28 12-28 26 0 20 28 42 28 42s28-22 28-42c0-14-11-26-28-26z"
+                fill="#ef3445"/>
+              <circle cx="93" cy="47" r="10" fill="white"/>
+              <path d="M158 42l20 0m-8-8 8 8-8 8" stroke="#ef3445"
+                stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="203" cy="30" r="9" fill="#425779"/>
+              <path d="m203 40-6 23 12 13m-7-24 19 11m-25 0-15 12m24-16-8 18"
+                stroke="#425779" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="m216 15 10 10m0-10-10 10" stroke="#ef3445"
+                stroke-width="3.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <div class="ea-geofence-dialog-body">
+            <h2 id="ea-location-alert-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.3" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3 2 21h20L12 3Z"/>
+                <path d="M12 9v5M12 17v1" stroke-linecap="round"/>
+              </svg>
+              {{ "Location Alert" | t }}
+            </h2>
+            <p id="ea-location-alert-message">{{ "You are outside your assigned location." | t }}<br>
+              {{ "Please return to your workplace immediately." | t }}</p>
+
+            <div class="ea-geofence-details">
+              <div class="ea-geofence-detail-row">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" aria-hidden="true">
+                  <path d="M12 22s7-6 7-13a7 7 0 0 0-14 0c0 7 7 13 7 13Z"/>
+                  <circle cx="12" cy="9" r="2.4"/>
+                </svg>
+                <strong>{{ "Assigned Location" | t }}</strong>
+                <span>{{ alert.locationName }}</span>
+              </div>
+              <div class="ea-geofence-detail-row">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9"/>
+                  <circle cx="12" cy="12" r="5"/>
+                  <circle cx="12" cy="12" r="1" fill="currentColor"/>
+                </svg>
+                <strong>{{ "Allowed Radius" | t }}</strong>
+                <span>{{ alert.radiusMeters }} {{ "metres" | t }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    }
   </div>
 } @else {
 
@@ -103,7 +176,7 @@
         <span class="text-xl">⌂</span>
 
         @if (!sidebarCollapsed) {
-          <span>Dashboard</span>
+          <span>{{ "Dashboard" | t }}</span>
         }
 
       </a>
@@ -119,7 +192,7 @@
           <span class="text-xl">♙</span>
 
           @if (!sidebarCollapsed) {
-            <span>Employees</span>
+            <span>{{ "Employees" | t }}</span>
           }
 
         </a>
@@ -136,7 +209,7 @@
           <span class="text-xl">⬡</span>
 
           @if (!sidebarCollapsed) {
-            <span>Admin Management</span>
+            <span>{{ "Admin Management" | t }}</span>
           }
 
         </a>
@@ -154,7 +227,7 @@
           <span class="text-xl">▤</span>
 
           @if (!sidebarCollapsed) {
-            <span>Departments</span>
+            <span>{{ "Departments" | t }}</span>
           }
 
         </a>
@@ -168,7 +241,7 @@
           <span class="text-xl">◷</span>
 
           @if (!sidebarCollapsed) {
-            <span>Shifts</span>
+            <span>{{ "Shifts" | t }}</span>
           }
 
         </a>
@@ -182,7 +255,7 @@
           <span class="text-xl">⌖</span>
 
           @if (!sidebarCollapsed) {
-            <span>Work Locations</span>
+            <span>{{ "Work Locations" | t }}</span>
           }
 
         </a>
@@ -195,7 +268,7 @@
 
         @if (!sidebarCollapsed) {
           <p class="px-3 pb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
-            ATTENDANCE
+            {{ "ATTENDANCE" | t }}
           </p>
         }
 
@@ -208,7 +281,7 @@
           <span class="text-xl">✓</span>
 
           @if (!sidebarCollapsed) {
-            <span>Attendance</span>
+            <span>{{ "Attendance" | t }}</span>
           }
 
         </a>
@@ -226,7 +299,7 @@
           <span class="text-xl">☑</span>
 
           @if (!sidebarCollapsed) {
-            <span>Approvals</span>
+            <span>{{ "Approvals" | t }}</span>
           }
 
         </a>
@@ -252,7 +325,7 @@
             </p>
 
             <p class="text-xs text-slate-500">
-              {{ roleName }}
+              {{ roleName | t }}
             </p>
 
           </div>
@@ -263,8 +336,8 @@
           type="button"
           (click)="logout()"
           [disabled]="isLoggingOut"
-          title="Logout"
-          aria-label="Logout"
+          [attr.title]="'Logout' | t"
+          [attr.aria-label]="'Logout' | t"
           class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 hover:text-red-700 disabled:opacity-50">
 
           <svg
@@ -320,11 +393,11 @@
         <div>
 
           <h1 class="text-xl font-bold text-slate-900">
-            Dashboard
+            {{ "Dashboard" | t }}
           </h1>
 
           <p class="hidden text-xs text-slate-500 sm:block">
-            Welcome back, {{ roleName }}!
+            {{ "Welcome back," | t }} {{ roleName | t }}!
           </p>
 
         </div>
@@ -333,6 +406,7 @@
 
       <!-- User Information -->
       <div class="flex items-center gap-3">
+        <app-language-selector />
 
         <div class="flex items-center gap-3 border-l border-slate-200 pl-4">
 
@@ -343,7 +417,7 @@
             </p>
 
             <p class="text-xs text-slate-500">
-              {{ roleName }}
+              {{ roleName | t }}
             </p>
 
           </div>
