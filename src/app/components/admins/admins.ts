@@ -1,3 +1,4 @@
+import { TranslateTextPipe } from '../../shared/translate-text.pipe';
 import { FeedbackService } from '../../shared/feedback/feedback.service';
 
 import {
@@ -26,7 +27,7 @@ import {
 @Component({
   selector: 'app-admins',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateTextPipe],
   templateUrl: './admins.html',
   styleUrl: './admins.css'
 })

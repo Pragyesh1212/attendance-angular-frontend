@@ -1,6 +1,6 @@
 
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -10,6 +10,7 @@ export interface AttendanceQuery {
   startDate?: string;
   endDate?: string;
   status?: string;
+  employeeName?: string;
   employeeProfileId?: string;
 }
 
@@ -19,6 +20,11 @@ export interface PunchInPolicy {
   opensAt: string | null;
   cutoffAt: string | null;
   message: string | null;
+  shiftOrder?: number;
+  shiftId?: string;
+  shiftName?: string;
+  totalShifts?: number;
+  allShiftsCompleted?: boolean;
 }
 
 export interface PunchInPayload {
@@ -62,6 +68,18 @@ export interface AttendanceResponse {
     limit: number;
     totalPages: number;
   };
+}
+
+export interface EmployeeLocationMonitorStatus {
+  active: boolean;
+  sessionId: string | null;
+  location: {
+    id: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+    radiusMeters: number;
+  } | null;
 }
 
 @Injectable({
@@ -111,18 +129,20 @@ export class Attendance {
     return this.http.get<PunchInPolicy>(`${this.API_URL}/my/punch-in-policy`);
   }
 
-  punchIn(data: PunchInPayload): Observable<any> {
-    return this.http.post(
-      `${this.API_URL}/punch-in`,
-      data
-    );
+  getMyLocationMonitor(): Observable<EmployeeLocationMonitorStatus> {
+    return this.http.get<EmployeeLocationMonitorStatus>(`${this.API_URL}/my/location-monitor`);
   }
 
-  punchOut(data: PunchOutPayload): Observable<any> {
-    return this.http.post(
-      `${this.API_URL}/punch-out`,
-      data
-    );
+  punchIn(data: PunchInPayload, deviceProof: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/punch-in`, data, {
+      headers: new HttpHeaders({ 'X-Device-Proof': deviceProof })
+    });
+  }
+
+  punchOut(data: PunchOutPayload, deviceProof: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/punch-out`, data, {
+      headers: new HttpHeaders({ 'X-Device-Proof': deviceProof })
+    });
   }
 
   createCorrection(data: any): Observable<any> {

@@ -1,3 +1,4 @@
+import { TranslateTextPipe } from '../../shared/translate-text.pipe';
 import { FeedbackService } from '../../shared/feedback/feedback.service';
 
 import {
@@ -20,7 +21,7 @@ import {
 @Component({
   selector: 'app-departments',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateTextPipe],
   templateUrl: './departments.html'
 })
 export class Departments implements OnInit {

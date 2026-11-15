@@ -1,9 +1,11 @@
+import { TranslateTextPipe } from '../translate-text.pipe';
 import { Component, ElementRef, HostListener, inject, ViewChild } from '@angular/core';
 import { FeedbackService } from './feedback.service';
 
 @Component({
   selector: 'app-feedback-host',
   standalone: true,
+  imports: [TranslateTextPipe],
   templateUrl: './feedback-host.html',
   styleUrl: './feedback-host.css'
 })

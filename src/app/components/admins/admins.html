@@ -5,16 +5,16 @@
   <div class="admin-page-header">
     <div>
       <h1 class="admin-page-title">
-        Admin <span>Management</span>
+        {{ "Admin" | t }} <span>{{ "Management" | t }}</span>
       </h1>
       <p class="admin-page-subtitle">
-        Create and manage administrator accounts.
+        {{ "Create and manage administrator accounts." | t }}
       </p>
     </div>
 
     <button class="add-admin-btn" (click)="openCreateModal()">
       <span class="btn-plus">+</span>
-      Add Admin
+      {{ "Add Admin" | t }}
     </button>
   </div>
 
@@ -41,7 +41,7 @@
     </div>
 
     <div class="summary-content">
-      <p>Total Administrators</p>
+      <p>{{ "Total Administrators" | t }}</p>
       <h2>{{ total }}</h2>
     </div>
 
@@ -73,7 +73,7 @@
         type="text"
         [(ngModel)]="search"
         (keyup.enter)="applyFilters()"
-        placeholder="Search name or email..."
+        [placeholder]="'Search name or email...' | t"
       />
     </div>
 
@@ -82,9 +82,9 @@
       class="admin-select"
       [(ngModel)]="selectedOrganization"
       [disabled]="isLoadingOrganizations"
-      aria-label="Filter by organization">
+      [attr.aria-label]="'Filter by organization' | t">
 
-      <option value="">All Organizations</option>
+      <option value="">{{ "All Organizations" | t }}</option>
 
       <option
         *ngFor="let organization of organizations"
@@ -100,12 +100,12 @@
     <select
       class="admin-select"
       [(ngModel)]="selectedStatus"
-      aria-label="Filter by status">
+      [attr.aria-label]="'Filter by status' | t">
 
-      <option value="">All Statuses</option>
-      <option value="ACTIVE">Active</option>
-      <option value="INACTIVE">Inactive</option>
-      <option value="SUSPENDED">Suspended</option>
+      <option value="">{{ "All Statuses" | t }}</option>
+      <option value="ACTIVE">{{ "Active" | t }}</option>
+      <option value="INACTIVE">{{ "Inactive" | t }}</option>
+      <option value="SUSPENDED">{{ "Suspended" | t }}</option>
 
     </select>
 
@@ -114,12 +114,12 @@
 
       <button class="search-btn" (click)="applyFilters()">
         <span>⌕</span>
-        Search
+        {{ "Search" | t }}
       </button>
 
       <button class="reset-btn" (click)="clearFilters()">
         <span>↻</span>
-        Reset
+        {{ "Reset" | t }}
       </button>
 
     </div>
@@ -130,14 +130,14 @@
   <div class="admin-table-card">
 
     <div class="table-heading">
-      <h2>Administrators</h2>
+      <h2>{{ "Administrators" | t }}</h2>
       <span>{{ total }} records</span>
     </div>
 
     <!-- Loading -->
     <div *ngIf="isLoading" class="table-loading">
       <div class="loading-spinner"></div>
-      Loading administrators...
+      {{ "Loading administrators..." | t }}
     </div>
 
     <!-- Empty State -->
@@ -146,8 +146,8 @@
       class="empty-state">
 
       <div class="empty-icon">♙</div>
-      <h3>No administrators found</h3>
-      <p>Create a new administrator or change your filters.</p>
+      <h3>{{ "No administrators found" | t }}</h3>
+      <p>{{ "Create a new administrator or change your filters." | t }}</p>
 
     </div>
 
@@ -160,13 +160,13 @@
 
         <thead>
           <tr>
-            <th>Administrator</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Organization</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Actions</th>
+            <th>{{ "Administrator" | t }}</th>
+            <th>{{ "Email" | t }}</th>
+            <th>{{ "Phone" | t }}</th>
+            <th>{{ "Organization" | t }}</th>
+            <th>{{ "Status" | t }}</th>
+            <th>{{ "Created" | t }}</th>
+            <th>{{ "Actions" | t }}</th>
           </tr>
         </thead>
 
@@ -223,7 +223,7 @@
                 [ngClass]="statusClass(admin.status)">
 
                 <span class="status-dot"></span>
-                {{ admin.status }}
+                {{ admin.status | t }}
 
               </span>
             </td>
@@ -242,8 +242,8 @@
                 <!-- Edit -->
                 <button
                   class="action-btn edit-btn"
-                  title="Edit administrator"
-                  aria-label="Edit administrator"
+                  [attr.title]="'Edit administrator' | t"
+                  [attr.aria-label]="'Edit administrator' | t"
                   (click)="openEditModal(admin)">
 
                   <svg viewBox="0 0 24 24" fill="none"
@@ -258,7 +258,7 @@
                 <button
                   *ngIf="admin.status === 'ACTIVE'"
                   class="action-btn deactivate-btn"
-                  title="Deactivate administrator"
+                  [attr.title]="'Deactivate administrator' | t"
                   (click)="deactivateAdmin(admin)">
 
                   <svg viewBox="0 0 24 24" fill="none"
@@ -267,7 +267,7 @@
                     <path d="m5.6 5.6 12.8 12.8"/>
                   </svg>
 
-                  <span>Deactivate</span>
+                  <span>{{ "Deactivate" | t }}</span>
 
                 </button>
 
@@ -275,7 +275,7 @@
                 <button
                   *ngIf="admin.status !== 'ACTIVE'"
                   class="action-btn reactivate-btn"
-                  title="Reactivate administrator"
+                  [attr.title]="'Reactivate administrator' | t"
                   (click)="reactivateAdmin(admin)">
 
                   <svg viewBox="0 0 24 24" fill="none"
@@ -286,7 +286,7 @@
                     <path d="M4 12l2.6 5a7 7 0 0 0 11.9-2"/>
                   </svg>
 
-                  <span>Reactivate</span>
+                  <span>{{ "Reactivate" | t }}</span>
 
                 </button>
 
@@ -316,13 +316,13 @@
         <button
           (click)="changePage(page - 1)"
           [disabled]="page === 1">
-          Previous
+          {{ "Previous" | t }}
         </button>
 
         <button
           (click)="changePage(page + 1)"
           [disabled]="page >= totalPages">
-          Next
+          {{ "Next" | t }}
         </button>
 
       </div>
@@ -345,13 +345,13 @@
 
       <div>
         <h2>
-          {{ isEditMode ? 'Edit Administrator' : 'Create Administrator' }}
+          {{ (isEditMode ? 'Edit Administrator' : 'Create Administrator') | t }}
         </h2>
 
         <p>
-          {{ isEditMode
+          {{ (isEditMode
             ? 'Update administrator information.'
-            : 'Create a new administrator account.' }}
+            : 'Create a new administrator account.') | t }}
         </p>
       </div>
 
@@ -372,7 +372,7 @@
       <div class="form-grid">
 
         <div class="form-group">
-          <label>First Name *</label>
+          <label>{{ "First Name *" | t }}</label>
 
           <input
             type="text"
@@ -381,11 +381,11 @@
             required
             minlength="2"
             maxlength="100"
-            placeholder="Enter first name"/>
+            [placeholder]="'Enter first name' | t"/>
         </div>
 
         <div class="form-group">
-          <label>Last Name *</label>
+          <label>{{ "Last Name *" | t }}</label>
 
           <input
             type="text"
@@ -394,13 +394,13 @@
             required
             minlength="2"
             maxlength="100"
-            placeholder="Enter last name"/>
+            [placeholder]="'Enter last name' | t"/>
         </div>
 
       </div>
 
       <div class="form-group">
-        <label>Email Address *</label>
+        <label>{{ "Email Address *" | t }}</label>
 
         <input
           type="email"
@@ -408,22 +408,22 @@
           [(ngModel)]="form.email"
           required
           email
-          placeholder="Enter email address"/>
+          [placeholder]="'Enter email address' | t"/>
       </div>
 
       <div class="form-group">
-        <label>Phone Number</label>
+        <label>{{ "Phone Number" | t }}</label>
 
         <input
           type="tel"
           name="phone"
           [(ngModel)]="form.phone"
           maxlength="20"
-          placeholder="Enter phone number"/>
+          [placeholder]="'Enter phone number' | t"/>
       </div>
 
       <div class="form-group">
-        <label>Organization *</label>
+        <label>{{ "Organization *" | t }}</label>
 
         <select
           name="organizationId"
@@ -432,9 +432,9 @@
           [disabled]="isLoadingOrganizations || isSaving || organizations.length === 0">
 
           <option value="">
-            {{ isLoadingOrganizations
+            {{ (isLoadingOrganizations
               ? 'Loading organizations...'
-              : 'Select organization' }}
+              : 'Select organization') | t }}
           </option>
 
           <option
@@ -448,7 +448,7 @@
         </select>
 
         <small *ngIf="activeOrganizations.length === 0 && !isLoadingOrganizations">
-          No active organizations available. Create an organization first.
+          {{ "No active organizations available. Create an organization first." | t }}
         </small>
 
       </div>
@@ -456,7 +456,7 @@
       <ng-container *ngIf="!isEditMode">
 
         <div class="form-group">
-          <label>Password *</label>
+          <label>{{ "Password *" | t }}</label>
 
           <input
             type="password"
@@ -465,13 +465,13 @@
             required
             minlength="12"
             maxlength="128"
-            placeholder="Minimum 12 characters"/>
+            [placeholder]="'Minimum 12 characters' | t"/>
 
-          <small>Password must contain 12–128 characters.</small>
+          <small>{{ "Password must contain 12–128 characters." | t }}</small>
         </div>
 
         <div class="form-group">
-          <label>Confirm Password *</label>
+          <label>{{ "Confirm Password *" | t }}</label>
 
           <input
             type="password"
@@ -480,7 +480,7 @@
             required
             minlength="12"
             maxlength="128"
-            placeholder="Re-enter password"/>
+            [placeholder]="'Re-enter password' | t"/>
         </div>
 
       </ng-container>
@@ -496,7 +496,7 @@
           class="modal-cancel"
           (click)="closeModal()"
           [disabled]="isSaving">
-          Cancel
+          {{ "Cancel" | t }}
         </button>
 
         <button
@@ -504,9 +504,9 @@
           class="modal-submit"
           [disabled]="isSaving || adminForm.invalid || !form.organizationId || activeOrganizations.length === 0">
 
-          {{ isSaving
+          {{ (isSaving
             ? 'Saving...'
-            : (isEditMode ? 'Save Changes' : 'Create Admin') }}
+            : (isEditMode ? 'Save Changes' : 'Create Admin')) | t }}
 
         </button>
 

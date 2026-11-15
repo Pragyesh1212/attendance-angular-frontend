@@ -27,6 +27,11 @@ export interface Employee {
     joiningDate?: string;
     avatarUrl?: string;
     shiftId?: string;
+    avatar?: { employeeProfileId: string } | null;
+    shiftAssignments?: Array<{sequence: number; shiftId: string; shift: {
+      id: string; name: string; startTime: string; endTime: string;
+      status: 'ACTIVE' | 'INACTIVE';
+    }}>
     shift?: {
       id: string;
       name: string;
@@ -87,6 +92,7 @@ export interface CreateEmployeePayload {
   departmentId?: string;
   joiningDate?: string;
   avatarUrl?: string;
+  shiftIds?: string[];
 }
 
 export interface UpdateEmployeePayload {
@@ -98,6 +104,7 @@ export interface UpdateEmployeePayload {
   departmentId?: string;
   joiningDate?: string;
   avatarUrl?: string;
+  shiftIds?: string[];
 }
 
 @Injectable({
@@ -184,6 +191,18 @@ export class EmployeeService {
   /** Keep the existing method name for any older components that call it. */
   deleteEmployee(employeeId: string): Observable<any> {
     return this.deactivateEmployee(employeeId);
+  }
+
+  uploadEmployeeAvatar(employeeId: string, file: File): Observable<any> {
+    const form = new FormData();
+    form.append('avatar', file, file.name);
+    return this.http.post(`${this.apiUrl}/users/employees/${encodeURIComponent(employeeId)}/avatar`, form);
+  }
+
+  getEmployeeAvatar(employeeId: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/users/employees/${encodeURIComponent(employeeId)}/avatar`, {
+      responseType: 'blob'
+    });
   }
 
   getDepartments(): Observable<any> {

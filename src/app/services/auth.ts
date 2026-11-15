@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, tap, finalize } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { LanguageService } from './language';
 
 export interface AuthUser {
   id: string;
@@ -29,6 +30,7 @@ export interface TokenResponse {
 export class Auth {
 
   private http = inject(HttpClient);
+  private readonly languageService = inject(LanguageService);
 
   private readonly API_URL = `${environment.apiUrl}/auth`;
 
@@ -46,6 +48,7 @@ export class Auth {
         sessionStorage.setItem('accessToken', response.accessToken);
         sessionStorage.setItem('refreshToken', response.refreshToken);
         sessionStorage.setItem('user', JSON.stringify(response.user));
+        this.languageService.syncForUser(response.user.id);
       })
     );
   }
@@ -109,5 +112,6 @@ export class Auth {
     sessionStorage.removeItem('accessToken');
     sessionStorage.removeItem('refreshToken');
     sessionStorage.removeItem('user');
+    this.languageService.syncForUser(null);
   }
 }

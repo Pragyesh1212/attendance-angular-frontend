@@ -1,3 +1,4 @@
+import { TranslateTextPipe } from '../../shared/translate-text.pipe';
 import { FeedbackService } from '../../shared/feedback/feedback.service';
 
 import { CommonModule } from '@angular/common';
@@ -20,7 +21,7 @@ import {
 @Component({
   selector: 'app-work-locations',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateTextPipe],
   templateUrl: './work-locations.html'
 })
 export class WorkLocationsComponent implements OnInit {

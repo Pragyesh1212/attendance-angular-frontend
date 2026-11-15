@@ -1,4 +1,9 @@
+import { TranslateTextPipe } from '../../shared/translate-text.pipe';
 import { FeedbackService } from '../../shared/feedback/feedback.service';
+import { EmployeeMonthlyService } from '../../services/employee-monthly';
+import { EmployeeDeviceService, RegisteredDevice } from '../../services/employee-device';
+import { EmployeeLocationMonitor } from '../../services/employee-location-monitor';
+import { forkJoin } from 'rxjs';
 
 import {
   Component,
@@ -28,10 +33,20 @@ interface CalendarDay {
   statuses: string[];
 }
 
+/** One display-only row for every calendar date in the selected month.
+ * No fake attendance record is written to the database. */
+interface EmployeeMonthDayRow {
+  dateKey: string;
+  formattedDate: string;
+  weekday: string;
+  record: AttendanceRecord | null;
+  status: string;
+}
+
 @Component({
   selector: 'app-attendance',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateTextPipe],
   templateUrl: './attendance.html',
   styleUrl: './attendance.css'
 })
@@ -54,11 +69,40 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
 
   private attendanceService = inject(Attendance);
+  private readonly locationMonitor = inject(EmployeeLocationMonitor);
+  private readonly devicesService = inject(EmployeeDeviceService);
+  currentBrowserDevice: RegisteredDevice | null = null;
+  deviceRegistrationMessage = '';
+  checkingDevice = false;
+
+  async ensureAttendanceDevice(): Promise<void> {
+    if (!this.user || this.user.role !== 'EMPLOYEE') return;
+    this.checkingDevice = true; this.deviceRegistrationMessage = '';
+    try {
+      this.currentBrowserDevice = await this.devicesService.ensureRegistered(this.user.id);
+    } catch (error: any) {
+      this.deviceRegistrationMessage = error?.error?.message || error?.message || 'Device enrollment unavailable';
+      this.currentBrowserDevice = await this.devicesService.currentBrowserDevice(this.user.id).catch(() => null);
+    } finally { this.checkingDevice = false; this.cdr.markForCheck(); }
+  }
+
+  async refreshAttendanceDevice(): Promise<void> {
+    if (!this.user || this.user.role !== 'EMPLOYEE') return;
+    this.checkingDevice = true;
+    try {
+      this.currentBrowserDevice = await this.devicesService.currentBrowserDevice(this.user.id);
+      this.deviceRegistrationMessage = this.currentBrowserDevice ? '' : 'No registered browser credential was found.';
+    } catch (error: any) { this.deviceRegistrationMessage = error?.error?.message || error?.message || 'Unable to check device status'; }
+    finally { this.checkingDevice = false; this.cdr.markForCheck(); }
+  }
+
+  private readonly employeeMonthlyService = inject(EmployeeMonthlyService);
   private authService = inject(Auth);
   private cdr = inject(ChangeDetectorRef);
 
   private clockInterval: ReturnType<typeof setInterval> | null = null;
   private policyPollTicks = 0;
+  private monthlyRequestSerial = 0;
 
   user = this.authService.getUser();
 
@@ -83,6 +127,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   startDate = '';
   endDate = '';
   selectedStatus = '';
+  // The input is not applied until the Admin clicks Apply (or presses Enter).
+  employeeNameSearch = '';
+  private appliedEmployeeName = '';
 
   currentMonth = new Date(
     new Date().getFullYear(),
@@ -106,6 +153,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   private punchInOpensAtMs: number | null = null;
   private punchInCutoffAtMs: number | null = null;
   private serverConfirmedCutoff = false;
+  currentShiftLabel = '';
+  allShiftsCompleted = false;
   punchInPolicyReady = false;
   punchInPolicyError = '';
   punchInBeforeStartMessage = 'Your shift has not started yet. Punch In will be available at shift start.';
@@ -162,6 +211,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         this.punchInOpensAtMs = Number.isFinite(opening) ? opening : null;
         this.punchInCutoffAtMs = Number.isFinite(closing) ? closing : null;
         this.serverConfirmedCutoff = policy.status === 'CLOSED' || policy.cutoffReached;
+        this.currentShiftLabel = policy.shiftOrder ? `Shift ${policy.shiftOrder}: ${policy.shiftName || ''}` : '';
+        this.allShiftsCompleted = policy.allShiftsCompleted === true;
         this.punchInBeforeStartMessage = policy.status === 'NOT_STARTED' && policy.message
           ? policy.message
           : 'Your shift has not started yet. Punch In will be available at shift start.';
@@ -254,6 +305,66 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       .filter(record => (record.workDate || '').slice(0, 7) === selectedMonth)
       .slice()
       .sort((a, b) => (b.workDate || '').localeCompare(a.workDate || ''));
+  }
+
+  /** Combines real attendance and Admin day-off overrides with ALL dates of
+   * the selected month. An unrecorded date is NOT automatically an absence. */
+  get employeeMonthDays(): EmployeeMonthDayRow[] {
+    const year = this.currentMonth.getFullYear();
+    const monthIndex = this.currentMonth.getMonth();
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+    const recordsByDate = new Map<string, AttendanceRecord>();
+    const dateFormatter = new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC'
+    });
+    const weekdayFormatter = new Intl.DateTimeFormat('en-GB', {
+      weekday: 'short', timeZone: 'UTC'
+    });
+    for (const record of this.employeeMonthRecords) {
+      const key = record.workDate?.slice(0, 10);
+      if (key && !recordsByDate.has(key)) recordsByDate.set(key, record);
+    }
+
+    const todayKey = this.formatDate(this.now.getFullYear(), this.now.getMonth(), this.now.getDate());
+    const rows: EmployeeMonthDayRow[] = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateKey = this.formatDate(year, monthIndex, day);
+      // UTC is used ONLY for calendar labels, never to shift stored punch times.
+      const utcDay = new Date(Date.UTC(year, monthIndex, day));
+      const record = recordsByDate.get(dateKey) ?? null;
+      const status = record?.status || (dateKey > todayKey ? 'UPCOMING' : 'NO_RECORD');
+      rows.push({
+        dateKey,
+        formattedDate: dateFormatter.format(utcDay),
+        weekday: weekdayFormatter.format(utcDay),
+        record,
+        status
+      });
+    }
+    return rows;
+  }
+
+  employeeDayWorkHours(day: EmployeeMonthDayRow): string {
+    // A non-working or unrecorded date is not a zero-hour shift.
+    if (!day.record || ['WEEKEND', 'HOLIDAY', 'UPCOMING', 'NO_RECORD'].includes(day.status) ||
+        !(day.record.sessions || []).some(s => !!s.punchInAt)) return '—';
+    return this.formatHours(this.getRecordWorkingMinutes(day.record));
+  }
+
+  employeeDayStatusLabel(status: string): string {
+    if (status === 'NO_RECORD') return 'No record';
+    if (status === 'UPCOMING') return 'Upcoming';
+    return status.replace(/_/g, ' ');
+  }
+
+  employeeDayStatusClass(status: string): string {
+    switch (status) {
+      case 'WEEKEND': return 'ea-status-weekend';
+      case 'HOLIDAY': return 'ea-status-holiday';
+      case 'UPCOMING': return 'ea-status-upcoming';
+      case 'NO_RECORD': return 'ea-status-no-record';
+      default: return this.statusClass(status);
+    }
   }
 
   get employeeStatusBars(): { key: string; label: string; count: number; percent: number }[] {
@@ -359,7 +470,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     return this.todaySessions.find(
       session =>
         !!session.punchInAt &&
-        !session.punchOutAt
+        !session.punchOutAt && session.approvalStatus !== 'REJECTED' 
     ) || null;
   }
 
@@ -387,7 +498,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   // A finished attendance session means the employee has completed today's
   // allowed punch-in and punch-out. Keep the button hidden after punch-out.
   get isAttendanceCompletedToday(): boolean {
-    return this.todaySessions.some(session => !!session.punchOutAt);
+    return this.allShiftsCompleted && this.todaySessions.some(session => !!session.punchOutAt);
   }
 
   get todayPunchIn(): string {
@@ -411,9 +522,11 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    if (this.user?.role === 'EMPLOYEE') void this.ensureAttendanceDevice();
     this.loadPunchInPolicy();
     this.loadAttendance();
-    this.loadMonthlyAttendance();
+    // Only the Employee page needs monthly data now.
+    if (this.isEmployee) this.loadMonthlyAttendance();
 
     this.clockInterval = setInterval(() => {
       this.now = new Date();
@@ -524,7 +637,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       limit: this.limit,
       startDate: this.startDate || undefined,
       endDate: this.endDate || undefined,
-      status: this.selectedStatus || undefined
+      status: this.selectedStatus || undefined,
+      ...(this.isAdmin && this.appliedEmployeeName
+        ? { employeeName: this.appliedEmployeeName }
+        : {})
     };
 
     const request$ = this.isAdmin
@@ -553,6 +669,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   loadMonthlyAttendance(): void {
+    const requestSerial = ++this.monthlyRequestSerial;
     this.isMonthlyLoading = true;
 
     const query: AttendanceQuery = {
@@ -566,8 +683,38 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       ? this.attendanceService.getAllAttendance(query)
       : this.attendanceService.getMyAttendance(query);
 
+    // Employee-only: overlay Admin-marked weekends/holidays without changing
+    // persisted attendance statuses or any Admin/Super Admin views.
+    if (this.isEmployee) {
+      forkJoin({ attendance: request$, dayOverrides: this.employeeMonthlyService.myOverrides(this.monthStart.slice(0, 7)) })
+        .subscribe({
+          next: ({ attendance, dayOverrides }) => {
+            if (requestSerial !== this.monthlyRequestSerial) return;
+            const rows = (attendance.data || []).map(record => ({ ...record }));
+            for (const day of dayOverrides) {
+              const existing = rows.find(r => r.workDate?.slice(0, 10) === day.date);
+              if (existing) {
+                existing.status = day.dayType;
+              } else {
+                rows.push({ id: `day-off-${day.date}`, workDate: `${day.date}T00:00:00.000Z`,
+                  status: day.dayType, totalWorkMinutes: 0, sessions: [], notes: day.note || '' });
+              }
+            }
+            this.monthlyRecords = rows;
+            this.buildCalendar();
+            this.isMonthlyLoading = false;
+            this.cdr.markForCheck();
+          },
+          error: e => { if (requestSerial !== this.monthlyRequestSerial) return;
+            this.monthlyRecords = []; this.isMonthlyLoading = false;
+            this.errorMessage = e.error?.message || 'Unable to load monthly attendance.';
+            this.cdr.markForCheck(); },
+        });
+      return;
+    }
     request$.subscribe({
       next: response => {
+        if (requestSerial !== this.monthlyRequestSerial) return;
         this.monthlyRecords = response.data || [];
 
         this.buildCalendar();
@@ -576,6 +723,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: error => {
+        if (requestSerial !== this.monthlyRequestSerial) return;
         this.monthlyRecords = [];
         this.isMonthlyLoading = false;
 
@@ -596,7 +744,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   private getCurrentLocation(
-    callback: (payload: PunchInPayload) => void
+    callback: (payload: PunchInPayload) => void,
+    timeoutMs = 300_000
   ): void {
     this.locationMessage = '';
     this.actionError = '';
@@ -614,8 +763,25 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
     this.cdr.markForCheck();
 
+    // Geolocation's own timeout may exclude time spent waiting for permission.
+    // A wall-clock deadline also prevents the UI from hanging indefinitely.
+    // Once the deadline passes, ignore any late GPS result to avoid submitting
+    // an attendance request after the user has already seen a timeout.
+    let finished = false;
+    const deadline = setTimeout(() => {
+      if (finished) return;
+      finished = true;
+      this.actionLoading = false;
+      this.locationMessage = '';
+      this.actionError = 'Location request timed out. Please try again.';
+      this.cdr.markForCheck();
+    }, timeoutMs + 1_000);
+
     navigator.geolocation.getCurrentPosition(
       position => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(deadline);
         const payload: PunchInPayload = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
@@ -629,6 +795,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         callback(payload);
       },
       error => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(deadline);
         this.actionLoading = false;
         this.locationMessage = '';
 
@@ -657,13 +826,13 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       },
       {
         enableHighAccuracy: true,
-        timeout: 300000,
+        timeout: timeoutMs,
         maximumAge: 0
       }
     );
   }
 
-  punchIn(): void {
+  async punchIn(): Promise<void> {
     if (this.actionLoading || this.activeSession || this.isAttendanceCompletedToday || this.rejectedSession) return;
     if (this.isPunchInUnavailable) {
       this.actionError = this.punchInPolicyReady
@@ -672,11 +841,24 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Permission request must be a direct user gesture for Chrome to allow it.
+    this.locationMonitor.requestSystemNotificationPermission();
+
     this.actionLoading = true;
     this.actionMessage = '';
     this.actionError = '';
 
-    this.getCurrentLocation(payload => {
+    // GPS can take minutes. Verify the browser immediately before sending the attendance request.
+    this.getCurrentLocation(async payload => {
+      let deviceProof: string;
+      try { deviceProof = await this.devicesService.punchProof(this.user?.id || ''); }
+      catch (e: any) {
+        this.actionLoading = false;
+        this.actionError = e?.error?.message || e?.message || 'Device verification failed';
+        await this.refreshAttendanceDevice();
+        this.cdr.markForCheck();
+        return;
+      }
       const requestPayload: PunchInPayload = {
         ...payload,
         ...(this.lateReason.trim()
@@ -684,7 +866,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           : {})
       };
 
-      this.attendanceService.punchIn(requestPayload).subscribe({
+      this.attendanceService.punchIn(requestPayload, deviceProof).subscribe({
         next: response => {
           this.actionLoading = false;
           this.showLateReason = false;
@@ -699,6 +881,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
             : response?.message || 'Punch-in successful.';
 
           this.refreshAttendance();
+          // A prior successful punch-out stops the monitor completely.
+          // Start it again for this new session, then read its live status.
+          this.locationMonitor.start();
+          this.locationMonitor.refreshImmediately();
           this.cdr.markForCheck();
         },
         error: error => {
@@ -732,7 +918,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     });
   }
 
-  punchOut(): void {
+  async punchOut(): Promise<void> {
     if (
       this.actionLoading ||
       !this.isPunchOutAllowed ||
@@ -744,20 +930,33 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.actionMessage = '';
     this.actionError = '';
 
-    this.getCurrentLocation(payload => {
+    // GPS can take minutes. Verify the browser immediately before sending the attendance request.
+    this.getCurrentLocation(async payload => {
+      let deviceProof: string;
+      try { deviceProof = await this.devicesService.punchProof(this.user?.id || ''); }
+      catch (e: any) {
+        this.actionLoading = false;
+        this.actionError = e?.error?.message || e?.message || 'Device verification failed';
+        await this.refreshAttendanceDevice();
+        this.cdr.markForCheck();
+        return;
+      }
       const requestPayload: PunchOutPayload = {
         latitude: payload.latitude,
         longitude: payload.longitude,
         accuracy: payload.accuracy
       };
 
-      this.attendanceService.punchOut(requestPayload).subscribe({
+      this.attendanceService.punchOut(requestPayload, deviceProof).subscribe({
         next: response => {
           this.actionLoading = false;
           this.actionMessage =
             response?.message || 'Punch-out successful.';
 
           this.refreshAttendance();
+          // Stop the GPS watcher, reminder timers, and 30-second status polling.
+          // The next successful Punch In will start monitoring again.
+          this.locationMonitor.stop();
           this.cdr.markForCheck();
         },
         error: error => {
@@ -771,7 +970,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         }
       });
-    });
+    }, 20_000); // Maximum 20 seconds for fresh Punch Out GPS acquisition.
   }
 
   changeView(view: 'daily' | 'monthly'): void {
@@ -811,6 +1010,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   applyFilters(): void {
+    if (this.isAdmin) {
+      this.appliedEmployeeName = this.employeeNameSearch.trim();
+    }
     this.page = 1;
     this.loadAttendance();
   }
@@ -819,6 +1021,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.startDate = '';
     this.endDate = '';
     this.selectedStatus = '';
+    this.employeeNameSearch = '';
+    this.appliedEmployeeName = '';
     this.page = 1;
     this.loadAttendance();
   }

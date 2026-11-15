@@ -1,3 +1,4 @@
+import { TranslateTextPipe } from '../../shared/translate-text.pipe';
 import { FeedbackService } from '../../shared/feedback/feedback.service';
 
 import {
@@ -66,8 +67,7 @@ interface SuperAdminStat {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule
-  ],
+    FormsModule, TranslateTextPipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })

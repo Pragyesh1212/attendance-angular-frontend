@@ -1,3 +1,4 @@
+import { TranslateTextPipe } from '../../shared/translate-text.pipe';
 import { FeedbackService } from '../../shared/feedback/feedback.service';
 import { CommonModule } from '@angular/common';
 import { Component, ChangeDetectorRef, inject, OnInit } from '@angular/core';
@@ -7,7 +8,7 @@ import { Organization, OrganizationService, OrganizationStatus } from '../../ser
 @Component({
   selector: 'app-organizations',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateTextPipe],
   templateUrl: './organizations.html'
 })
 export class Organizations implements OnInit {

@@ -5,8 +5,8 @@
 ============================================================= -->
 <section *ngIf="isEmployee" class="ea-screen">
   <div class="ea-page-heading">
-    <h1><span>My</span> <span class="ea-blue-text">Attendance</span></h1>
-    <p>Mark your attendance and track today's activity.</p>
+    <h1><span>{{ "My" | t }}</span> <span class="ea-blue-text">{{ "Attendance" | t }}</span></h1>
+    <p>{{ "Mark your attendance and track today's activity." | t }}</p>
   </div>
 
   <article class="ea-today-card" aria-labelledby="ea-today-title">
@@ -21,26 +21,26 @@
             </svg>
           </div>
           <div class="ea-title-group">
-            <h2 id="ea-today-title">Today's Attendance</h2>
+            <h2 id="ea-today-title">{{ "Today's Attendance" | t }}</h2>
             <p>{{ today | date:'EEEE, dd MMMM yyyy' }}</p>
             <div class="ea-badges" aria-live="polite">
               <span *ngIf="activeSession && isPunchOutAllowed" class="ea-badge ea-badge-working">
-                <span class="ea-dot"></span> Currently Working
+                <span class="ea-dot"></span> {{ "Currently Working" | t }}
               </span>
               <span *ngIf="pendingApproval" class="ea-badge ea-badge-pending">
-                <span class="ea-dot"></span> Approval Pending
+                <span class="ea-dot"></span> {{ "Approval Pending" | t }}
               </span>
               <span *ngIf="rejectedSession && !pendingApproval" class="ea-badge ea-badge-rejected">
-                <span class="ea-dot"></span> Approval Rejected
+                <span class="ea-dot"></span> {{ "Approval Rejected" | t }}
               </span>
               <span *ngIf="isAttendanceCompletedToday" class="ea-badge ea-badge-completed">
-                <span class="ea-dot"></span> Completed Today
+                <span class="ea-dot"></span> {{ "Completed Today" | t }}
               </span>
             </div>
           </div>
         </div>
 
-        <div class="ea-metrics" aria-label="Today's attendance summary">
+        <div class="ea-metrics" [attr.aria-label]="'Today\'s attendance summary' | t">
           <div class="ea-metric">
             <div class="ea-metric-icon ea-icon-blue" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -48,7 +48,7 @@
               </svg>
             </div>
             <div class="ea-metric-info">
-              <span class="ea-metric-label">Punch In</span>
+              <span class="ea-metric-label">{{ "Punch In" | t }}</span>
               <strong>{{ todayPunchIn ? (todayPunchIn | date:'hh:mm a') : '--:--' }}</strong>
             </div>
           </div>
@@ -59,7 +59,7 @@
               </svg>
             </div>
             <div class="ea-metric-info">
-              <span class="ea-metric-label">Punch Out</span>
+              <span class="ea-metric-label">{{ "Punch Out" | t }}</span>
               <strong>{{ todayPunchOut ? (todayPunchOut | date:'hh:mm a') : '--:--' }}</strong>
             </div>
           </div>
@@ -70,7 +70,7 @@
               </svg>
             </div>
             <div class="ea-metric-info">
-              <span class="ea-metric-label">Working Hours</span>
+              <span class="ea-metric-label">{{ "Working Hours" | t }}</span>
               <strong class="ea-hours-value">{{ todayWorkingHours }}</strong>
             </div>
           </div>
@@ -79,18 +79,18 @@
 
       <div class="ea-action-panel">
         <button
-          *ngIf="!activeSession && !isAttendanceCompletedToday && !rejectedSession"
+          *ngIf="!activeSession && !isAttendanceCompletedToday"
           type="button"
           class="ea-punch-button"
           (click)="punchIn()"
-          [disabled]="actionLoading || pendingApproval || !!rejectedSession || isPunchInUnavailable"
+          [disabled]="actionLoading || pendingApproval || isPunchInUnavailable"
           [attr.aria-busy]="actionLoading"
           [attr.aria-describedby]="isPunchInUnavailable ? 'ea-punch-cutoff-message' : null">
           <span class="ea-punch-button-row">
             <svg *ngIf="!actionLoading" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5a1 1 0 0 1 1.53-.85l11 7.5a1 1 0 0 1 0 1.7l-11 7.5A1 1 0 0 1 7 19.5z"/></svg>
-            <span>{{ actionLoading ? 'Processing...' : (!punchInPolicyReady ? 'Checking Shift' : (isPunchInBeforeShift ? 'Shift Not Started' : (isPunchInCutoffReached ? 'Punch In Closed' : (showLateReason ? 'Submit Late Reason & Punch In' : 'Punch In')))) }}</span>
+            <span>{{ (actionLoading ? 'Processing...' : (!punchInPolicyReady ? 'Checking Shift' : (isPunchInBeforeShift ? 'Shift Not Started' : (isPunchInCutoffReached ? 'Punch In Closed' : (showLateReason ? 'Submit Late Reason & Punch In' : 'Punch In'))))) | t }}</span>
           </span>
-          <span class="ea-button-subtitle">{{ !punchInPolicyReady ? 'Verifying your shift...' : (isPunchInBeforeShift ? 'Available at shift start' : (isPunchInCutoffReached ? 'Contact your Admin' : (actionLoading ? 'Verifying your location...' : 'Start your workday'))) }}</span>
+          <span class="ea-button-subtitle">{{ (!punchInPolicyReady ? 'Verifying your shift...' : (isPunchInBeforeShift ? 'Available at shift start' : (isPunchInCutoffReached ? 'Contact your Admin' : (actionLoading ? 'Verifying your location...' : 'Start your workday')))) | t }}</span>
         </button>
 
         <p *ngIf="isPunchInUnavailable && !activeSession && !isAttendanceCompletedToday"
@@ -108,24 +108,33 @@
           [attr.aria-busy]="actionLoading">
           <span class="ea-punch-button-row">
             <svg *ngIf="!actionLoading" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="3"/></svg>
-            <span>{{ actionLoading ? 'Processing...' : 'Punch Out' }}</span>
+            <span>{{ (actionLoading ? 'Processing...' : 'Punch Out') | t }}</span>
           </span>
-          <span class="ea-button-subtitle">{{ actionLoading ? 'Verifying your location...' : 'End your work session' }}</span>
+          <span class="ea-button-subtitle">{{ (actionLoading ? 'Verifying your location...' : 'End your work session') | t }}</span>
         </button>
 
         <div *ngIf="isAttendanceCompletedToday && !activeSession" class="ea-punch-unavailable ea-punch-completed" role="status">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="9"/><path d="m7.5 12 3 3 6-6"/>
           </svg>
-          <strong>Attendance Completed</strong>
-          <span>You've punched in and out today. You can punch in again tomorrow.</span>
+          <strong>{{ "Attendance Completed" | t }}</strong>
+          <span>{{ "All your assigned shift sessions are complete for today." | t }}</span>
         </div>
 
         <div *ngIf="activeSession && !isPunchOutAllowed" class="ea-punch-unavailable" role="status">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l3 2"/></svg>
-          <strong>{{ pendingApproval ? 'Approval Pending' : (rejectedSession ? 'Approval Rejected' : 'Punch Out Unavailable') }}</strong>
-          <span>{{ pendingApproval ? 'Awaiting Admin review' : 'Contact your Admin' }}</span>
+          <strong>{{ (pendingApproval ? 'Approval Pending' : (rejectedSession ? 'Approval Rejected' : 'Punch Out Unavailable')) | t }}</strong>
+          <span>{{ (pendingApproval ? 'Awaiting Admin review' : 'Contact your Admin') | t }}</span>
         </div>
+      </div>
+    </div>
+
+    <div *ngIf="currentShiftLabel || todaySessions.length" class="px-5 pb-3 text-xs text-slate-600" [attr.aria-label]="'Daily shift sessions' | t">
+      <p *ngIf="currentShiftLabel && !activeSession" class="mb-2 font-semibold text-blue-700">Next attendance: {{ currentShiftLabel }}</p>
+      <div *ngFor="let session of todaySessions" class="flex flex-wrap items-center gap-3 py-1">
+        <strong>Shift {{ session.shiftOrder || 1 }}{{ session.shiftName ? ' — ' + session.shiftName : '' }}</strong>
+        <span>In: {{ session.punchInAt | date:'hh:mm a' }}</span>
+        <span>Out: {{ session.punchOutAt ? (session.punchOutAt | date:'hh:mm a') : 'Not yet' }}</span>
       </div>
     </div>
 
@@ -134,28 +143,28 @@
         <path d="M12 2 4.5 5v6c0 5 3.2 8.8 7.5 11 4.3-2.2 7.5-6 7.5-11V5z"/><path d="m9 12 2 2 4-4"/>
       </svg>
       <div>
-        <strong>Location verification required</strong>
-        <p>Your GPS location and office network (when configured) are checked when you punch in or out.</p>
+        <strong>{{ "Location verification required" | t }}</strong>
+        <p>{{ "Your GPS location and office network (when configured) are checked when you punch in or out." | t }}</p>
         <span *ngIf="locationMessage" class="ea-capture-message">{{ locationMessage }}</span>
       </div>
     </div>
 
     <!-- Existing late-arrival, approval, and API feedback preserved -->
     <div *ngIf="showLateReason" class="ea-inline-alert ea-alert-warning">
-      <strong>Late arrival reason required</strong>
-      <p>Please provide a reason for your late arrival before submitting punch-in.</p>
-      <label class="ea-field-label" for="ea-late-reason">Reason</label>
-      <textarea id="ea-late-reason" [(ngModel)]="lateReason" rows="3" maxlength="500" placeholder="Enter your reason..."></textarea>
+      <strong>{{ "Late arrival reason required" | t }}</strong>
+      <p>{{ "Please provide a reason for your late arrival before submitting punch-in." | t }}</p>
+      <label class="ea-field-label" for="ea-late-reason">{{ "Reason" | t }}</label>
+      <textarea id="ea-late-reason" [(ngModel)]="lateReason" rows="3" maxlength="500" [placeholder]="'Enter your reason...' | t"></textarea>
       <span class="ea-character-count">{{ lateReason.length }}/500</span>
     </div>
 
     <div *ngIf="pendingApproval" class="ea-inline-alert ea-alert-warning" role="status">
-      <strong>Approval needed.</strong>
-      Your late-arrival request has been sent to Admin and is awaiting review. You cannot start working or punch out until it is approved.
+      <strong>{{ "Approval needed." | t }}</strong>
+      {{ "Your late-arrival request has been sent to Admin and is awaiting review. You cannot start working or punch out until it is approved." | t }}
     </div>
 
     <div *ngIf="rejectedSession" class="ea-inline-alert ea-alert-error" role="alert">
-      Your late-arrival request was rejected. Please contact your Admin before attempting another punch-in.
+      {{ "Your late-arrival request was rejected. Please contact your Admin before attempting another punch-in." | t }}
       <span *ngIf="rejectedSession.rejectionReason">Admin's reason: {{ rejectedSession.rejectionReason }}</span>
     </div>
 
@@ -163,19 +172,39 @@
     <div *ngIf="errorMessage" class="ea-inline-alert ea-alert-error" role="alert">{{ errorMessage }}</div>
   </article>
 
+  <!-- Device enrollment is separate from Today's Attendance, which remains unchanged. -->
+  <section *ngIf="isEmployee" class="ea-device-registration" [attr.aria-label]="'Attendance device registration' | t">
+    <div class="ea-device-registration-top">
+      <div><strong>{{ "Registered attendance browser" | t }}</strong>
+        <p *ngIf="currentBrowserDevice">{{ currentBrowserDevice.label }} · {{ currentBrowserDevice.operatingSystem || 'Browser' }}
+          <span class="ea-device-status" [class.ea-device-approved]="currentBrowserDevice.status === 'APPROVED'">
+            {{ (currentBrowserDevice.status === 'PENDING' ? 'Awaiting Admin approval' : currentBrowserDevice.status) | t }}
+          </span>
+        </p>
+        <p *ngIf="!currentBrowserDevice">{{ "Registering this browser automatically after login. Admin approval is required before Punch In/Out." | t }}</p>
+        <p *ngIf="deviceRegistrationMessage" class="ea-device-error">{{ deviceRegistrationMessage }}</p>
+      </div>
+      <div class="ea-device-actions">
+        <button type="button" (click)="refreshAttendanceDevice()" [disabled]="checkingDevice">{{ "Refresh status" | t }}</button>
+        <button type="button" *ngIf="!currentBrowserDevice" (click)="ensureAttendanceDevice()" [disabled]="checkingDevice">{{ "Register this browser" | t }}</button>
+      </div>
+    </div>
+    <p class="ea-device-help">{{ "Up to 2 approved browser credentials per employee. Device details are captured automatically; Admin controls approval and replacement." | t }}</p>
+  </section>
+
   <!-- Employee-only monthly records and status summary. Admin/Super Admin markup is unchanged. -->
   <section class="ea-monthly-card" aria-labelledby="ea-records-title">
     <div class="ea-monthly-top">
       <div>
-        <h2 id="ea-records-title">My Attendance Records</h2>
-        <p>Your attendance details for the selected month.</p>
+        <h2 id="ea-records-title">{{ "My Attendance Records" | t }}</h2>
+        <p>{{ "Your attendance details for the selected month." | t }}</p>
       </div>
       <label class="ea-month-picker">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
           <rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/>
         </svg>
-        <span class="ea-visually-hidden">Select attendance month</span>
-        <input type="month" aria-label="Select attendance month"
+        <span class="ea-visually-hidden">{{ "Select attendance month" | t }}</span>
+        <input type="month" [attr.aria-label]="'Select attendance month' | t"
           [ngModel]="monthStart.slice(0, 7)"
           (ngModelChange)="onEmployeeMonthChange($event)"/>
       </label>
@@ -191,27 +220,29 @@
           <table class="ea-records-table">
             <thead>
               <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Punch In</th>
-                <th scope="col">Punch Out</th>
-                <th scope="col">Work Hours</th>
-                <th scope="col">Status</th>
+                <th scope="col">{{ "Date" | t }}</th>
+                <th scope="col">{{ "Day" | t }}</th>
+                <th scope="col">{{ "Punch In" | t }}</th>
+                <th scope="col">{{ "Punch Out" | t }}</th>
+                <th scope="col">{{ "Work Hours" | t }}</th>
+                <th scope="col">{{ "Status" | t }}</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let record of employeeMonthRecords">
-                <td class="ea-td-date">{{ record.workDate | date:'dd MMM yyyy':'+0530' }}</td>
-                <td>{{ firstPunchInAt(record) ? (firstPunchInAt(record) | date:'hh:mm a':'+0530') : '—' }}</td>
-                <td>{{ latestPunchOutAt(record) ? (latestPunchOutAt(record) | date:'hh:mm a':'+0530') : (firstPunchInAt(record) ? 'Not yet' : '—') }}</td>
-                <td>{{ formatHours(record.totalWorkMinutes) }}</td>
+              <tr *ngFor="let day of employeeMonthDays"
+                  [class.ea-day-weekend]="day.status === 'WEEKEND'"
+                  [class.ea-day-holiday]="day.status === 'HOLIDAY'"
+                  [class.ea-day-today]="day.dateKey === (today | date:'yyyy-MM-dd')">
+                <td class="ea-td-date">{{ day.formattedDate }}</td>
+                <td>{{ day.weekday }}</td>
+                <td>{{ day.record && firstPunchInAt(day.record) ? (firstPunchInAt(day.record) | date:'hh:mm a':'+0530') : '—' }}</td>
+                <td>{{ day.record && latestPunchOutAt(day.record) ? (latestPunchOutAt(day.record) | date:'hh:mm a':'+0530') : (day.record && firstPunchInAt(day.record) ? 'Not yet' : '—') }}</td>
+                <td>{{ employeeDayWorkHours(day) }}</td>
                 <td>
-                  <span class="ea-record-status" [ngClass]="statusClass(record.status)">
-                    {{ record.status.replace('_', ' ') }}
+                  <span class="ea-record-status" [ngClass]="employeeDayStatusClass(day.status)">
+                    {{ employeeDayStatusLabel(day.status) | t }}
                   </span>
                 </td>
-              </tr>
-              <tr *ngIf="employeeMonthRecords.length === 0">
-                <td colspan="5" class="ea-table-empty">No attendance records found for {{ monthLabel }}.</td>
               </tr>
             </tbody>
           </table>
@@ -221,8 +252,8 @@
       <div class="ea-summary-col" aria-labelledby="ea-summary-title">
         <div class="ea-summary-heading">
           <div>
-            <h3 id="ea-summary-title">Monthly Attendance Summary</h3>
-            <p>Attendance trend for the selected period.</p>
+            <h3 id="ea-summary-title">{{ "Monthly Attendance Summary" | t }}</h3>
+            <p>{{ "Attendance trend for the selected period." | t }}</p>
           </div>
           <span class="ea-summary-month">{{ monthLabel }}</span>
         </div>
@@ -250,13 +281,13 @@
             <circle cx="12" cy="12" r="9"/><path d="M12 7v6"/><path d="M12 17h.01"/>
           </svg>
         </span>
-        <button type="button" class="ea-error-dialog-close" aria-label="Close error message"
+        <button type="button" class="ea-error-dialog-close" [attr.aria-label]="'Close error message' | t"
           (click)="actionError = ''">&times;</button>
       </div>
-      <h2 id="ea-error-title">Unable to mark attendance</h2>
+      <h2 id="ea-error-title">{{ "Unable to mark attendance" | t }}</h2>
       <p id="ea-error-description">{{ actionError }}</p>
       <div class="ea-error-dialog-actions">
-        <button type="button" class="ea-error-dialog-ok" (click)="actionError = ''">Got it</button>
+        <button type="button" class="ea-error-dialog-ok" (click)="actionError = ''">{{ "Got it" | t }}</button>
       </div>
     </section>
   </div>
@@ -270,21 +301,16 @@
   <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
     <div>
       <h1 class="text-2xl font-bold text-slate-800">
-        {{ isEmployee ? 'My Attendance' : 'Attendance Management' }}
+        {{ (isEmployee ? 'My Attendance' : 'Attendance Management') | t }}
       </h1>
       <p class="mt-1 text-sm text-slate-500">
-        {{ isEmployee
+        {{ (isEmployee
           ? 'Track your daily attendance and working hours.'
-          : 'View and manage organization attendance records.' }}
+          : 'View and manage organization attendance records.') | t }}
       </p>
     </div>
 
-    <button
-      (click)="refreshAttendance()"
-      [disabled]="isLoading || isMonthlyLoading"
-      class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">
-      Refresh
-    </button>
+
   </div>
 
   <!-- Employee Attendance Portal -->
@@ -296,7 +322,7 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 class="text-lg font-bold text-slate-800">
-              Today's Attendance
+              {{ "Today's Attendance" | t }}
             </h2>
             <p class="mt-1 text-sm text-slate-500">
               {{ today | date:'EEEE, dd MMMM yyyy' }}
@@ -306,19 +332,19 @@
           <span
             *ngIf="activeSession && isPunchOutAllowed"
             class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-            Currently Working
+            {{ "Currently Working" | t }}
           </span>
 
           <span
             *ngIf="pendingApproval"
             class="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
-            Approval Pending
+            {{ "Approval Pending" | t }}
           </span>
 
           <span
             *ngIf="rejectedSession && !activeSession && !pendingApproval"
             class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
-            Approval Rejected
+            {{ "Approval Rejected" | t }}
           </span>
         </div>
       </div>
@@ -327,21 +353,21 @@
       <div class="grid grid-cols-1 gap-4 p-5 sm:grid-cols-3">
 
         <div class="rounded-xl bg-slate-50 p-4">
-          <p class="text-sm text-slate-500">Punch In</p>
+          <p class="text-sm text-slate-500">{{ "Punch In" | t }}</p>
           <h3 class="mt-2 text-xl font-bold text-slate-800">
             {{ todayPunchIn ? (todayPunchIn | date:'hh:mm a') : '--:--' }}
           </h3>
         </div>
 
         <div class="rounded-xl bg-slate-50 p-4">
-          <p class="text-sm text-slate-500">Punch Out</p>
+          <p class="text-sm text-slate-500">{{ "Punch Out" | t }}</p>
           <h3 class="mt-2 text-xl font-bold text-slate-800">
             {{ todayPunchOut ? (todayPunchOut | date:'hh:mm a') : '--:--' }}
           </h3>
         </div>
 
         <div class="rounded-xl bg-slate-50 p-4">
-          <p class="text-sm text-slate-500">Working Hours</p>
+          <p class="text-sm text-slate-500">{{ "Working Hours" | t }}</p>
           <h3 class="mt-2 text-xl font-bold text-blue-600">
             {{ todayWorkingHours }}
           </h3>
@@ -356,7 +382,7 @@
 
           <div>
             <h3 class="font-semibold text-blue-800">
-              Location verification required
+              {{ "Location verification required" | t }}
             </h3>
 
             <p class="mt-1 text-sm text-blue-700">
@@ -377,18 +403,18 @@
       <div *ngIf="showLateReason" class="mx-5 mb-5 rounded-xl border border-yellow-200 bg-yellow-50 p-4">
 
         <h3 class="font-semibold text-yellow-800">
-          Late arrival reason required
+          {{ "Late arrival reason required" | t }}
         </h3>
 
         <p class="mt-1 text-sm text-yellow-700">
-          Please provide a reason for your late arrival.
+          {{ "Please provide a reason for your late arrival." | t }}
         </p>
 
         <textarea
           [(ngModel)]="lateReason"
           rows="3"
           maxlength="500"
-          placeholder="Enter your reason..."
+          [placeholder]="'Enter your reason...' | t"
           class="mt-3 w-full rounded-lg border border-yellow-300 bg-white p-3 text-sm outline-none focus:border-yellow-500">
         </textarea>
 
@@ -400,15 +426,14 @@
       <!-- Pending Approval Information -->
       <div *ngIf="pendingApproval"
         class="mx-5 mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800">
-        <strong>Approval needed.</strong>
-        Your late-arrival request has been sent to Admin and is awaiting review.
-        You cannot start working or punch out until it is approved.
+        <strong>{{ "Approval needed." | t }}</strong>
+        {{ "Your late-arrival request has been sent to Admin and is awaiting review. You cannot start working or punch out until it is approved." | t }}
       </div>
 
       <!-- Rejected Approval Information -->
       <div *ngIf="rejectedSession"
         class="mx-5 mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-        Your late-arrival request was rejected. Please contact your Admin before attempting another punch-in.
+        {{ "Your late-arrival request was rejected. Please contact your Admin before attempting another punch-in." | t }}
         <span *ngIf="rejectedSession.rejectionReason">
           Admin's reason: {{ rejectedSession.rejectionReason }}
         </span>
@@ -435,9 +460,9 @@
           [disabled]="actionLoading || pendingApproval || !!rejectedSession"
           class="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">
 
-          {{ actionLoading
+          {{ (actionLoading
             ? 'Processing...'
-            : (showLateReason ? 'Submit Late Reason & Punch In' : 'Punch In') }}
+            : (showLateReason ? 'Submit Late Reason & Punch In' : 'Punch In')) | t }}
         </button>
 
         <button
@@ -446,14 +471,14 @@
           [disabled]="actionLoading"
           class="rounded-lg bg-red-500 px-6 py-3 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-50">
 
-          {{ actionLoading ? 'Processing...' : 'Punch Out' }}
+          {{ (actionLoading ? 'Processing...' : 'Punch Out') | t }}
         </button>
 
         <button
           (click)="refreshAttendance()"
           [disabled]="actionLoading"
           class="rounded-lg border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-          Refresh
+          {{ "Refresh" | t }}
         </button>
 
       </div>
@@ -461,45 +486,44 @@
     </div>
   </div>
 
-  <!-- View Switch -->
-  <div class="mb-6 flex gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm sm:w-fit">
-
-    <button
-      (click)="changeView('daily')"
-      [ngClass]="viewMode === 'daily'
-        ? 'bg-blue-600 text-white shadow-sm'
-        : 'text-slate-600 hover:bg-slate-100'"
-      class="rounded-lg px-5 py-2.5 text-sm font-semibold transition">
-      Daily View
-    </button>
-
-    <button
-      (click)="changeView('monthly')"
-      [ngClass]="viewMode === 'monthly'
-        ? 'bg-blue-600 text-white shadow-sm'
-        : 'text-slate-600 hover:bg-slate-100'"
-      class="rounded-lg px-5 py-2.5 text-sm font-semibold transition">
-      Monthly View
-    </button>
-
+  <!-- The Admin Attendance page has a single daily-record view. -->
+  <div class="mb-6 inline-flex rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+    <span class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm">
+      {{ "Daily View" | t }}
+    </span>
   </div>
 
   <!-- Daily View -->
-  <div *ngIf="viewMode === 'daily'">
+  <div>
 
     <!-- Filters -->
     <div *ngIf="isAdmin"
       class="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
 
       <h2 class="mb-4 font-semibold text-slate-700">
-        Filter Attendance
+        {{ "Filter Attendance" | t }}
       </h2>
 
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12">
 
-        <div>
+        <div class="sm:col-span-2 lg:col-span-3">
+          <label for="attendance-employee-search" class="mb-1 block text-sm font-medium text-slate-600">
+            {{ "Employee Name" | t }}
+          </label>
+          <input
+            id="attendance-employee-search"
+            type="search"
+            [(ngModel)]="employeeNameSearch"
+            (keydown.enter)="applyFilters()"
+            maxlength="100"
+            autocomplete="off"
+            [placeholder]="'Search employee name...' | t"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500">
+        </div>
+
+        <div class="lg:col-span-2">
           <label class="mb-1 block text-sm font-medium text-slate-600">
-            Start Date
+            {{ "Start Date" | t }}
           </label>
 
           <input
@@ -508,9 +532,9 @@
             class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
         </div>
 
-        <div>
+        <div class="lg:col-span-2">
           <label class="mb-1 block text-sm font-medium text-slate-600">
-            End Date
+            {{ "End Date" | t }}
           </label>
 
           <input
@@ -519,36 +543,36 @@
             class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
         </div>
 
-        <div>
+        <div class="lg:col-span-3">
           <label class="mb-1 block text-sm font-medium text-slate-600">
-            Status
+            {{ "Status" | t }}
           </label>
 
           <select
             [(ngModel)]="selectedStatus"
             class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
 
-            <option value="">All Statuses</option>
-            <option value="PRESENT">Present</option>
-            <option value="LATE">Late</option>
-            <option value="ABSENT">Absent</option>
-            <option value="HALF_DAY">Half Day</option>
-            <option value="ON_LEAVE">On Leave</option>
+            <option value="">{{ "All Statuses" | t }}</option>
+            <option value="PRESENT">{{ "Present" | t }}</option>
+            <option value="LATE">{{ "Late" | t }}</option>
+            <option value="ABSENT">{{ "Absent" | t }}</option>
+            <option value="HALF_DAY">{{ "Half Day" | t }}</option>
+            <option value="ON_LEAVE">{{ "On Leave" | t }}</option>
 
           </select>
         </div>
 
-        <div class="flex items-end gap-2">
+        <div class="flex items-end gap-2 sm:col-span-2 lg:col-span-2">
           <button
             (click)="applyFilters()"
             class="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-            Apply
+            {{ "Apply" | t }}
           </button>
 
           <button
             (click)="clearFilters()"
             class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
-            Clear
+            {{ "Clear" | t }}
           </button>
         </div>
 
@@ -560,7 +584,7 @@
       class="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
 
       <h2 class="mb-4 font-semibold text-slate-700">
-        My Attendance History
+        {{ "My Attendance History" | t }}
       </h2>
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -578,7 +602,7 @@
         <button
           (click)="applyFilters()"
           class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white">
-          Apply Filters
+          {{ "Apply Filters" | t }}
         </button>
 
       </div>
@@ -589,18 +613,18 @@
 
       <div class="border-b border-slate-200 px-5 py-4">
         <h2 class="font-semibold text-slate-800">
-          {{ isEmployee ? 'My Attendance Records' : 'Attendance Records' }}
+          {{ (isEmployee ? 'My Attendance Records' : 'Attendance Records') | t }}
         </h2>
       </div>
 
       <div *ngIf="isLoading"
         class="p-10 text-center text-slate-500">
-        Loading attendance records...
+        {{ "Loading attendance records..." | t }}
       </div>
 
       <div *ngIf="!isLoading && records.length === 0"
         class="p-10 text-center text-slate-500">
-        No attendance records found.
+        {{ "No attendance records found." | t }}
       </div>
 
       <div *ngIf="!isLoading && records.length > 0"
@@ -610,14 +634,14 @@
 
           <thead class="bg-slate-50 text-xs uppercase text-slate-500">
             <tr>
-              <th *ngIf="isAdmin" class="px-5 py-4">Employee</th>
-              <th class="px-5 py-4">Date</th>
-              <th class="px-5 py-4">Status</th>
-              <th class="px-5 py-4">Working Hours</th>
+              <th *ngIf="isAdmin" class="px-5 py-4">{{ "Employee" | t }}</th>
+              <th class="px-5 py-4">{{ "Date" | t }}</th>
+              <th class="px-5 py-4">{{ "Status" | t }}</th>
+              <th class="px-5 py-4">{{ "Working Hours" | t }}</th>
               <!-- ADMIN: show punch times; SUPER_ADMIN: retain existing Sessions column -->
-              <th *ngIf="user?.role === 'ADMIN'" class="px-5 py-4">Punch In</th>
-              <th *ngIf="user?.role === 'ADMIN'" class="px-5 py-4">Punch Out</th>
-              <th *ngIf="user?.role !== 'ADMIN'" class="px-5 py-4">Sessions</th>
+              <th *ngIf="user?.role === 'ADMIN'" class="px-5 py-4">{{ "Punch In" | t }}</th>
+              <th *ngIf="user?.role === 'ADMIN'" class="px-5 py-4">{{ "Punch Out" | t }}</th>
+              <th *ngIf="user?.role !== 'ADMIN'" class="px-5 py-4">{{ "Sessions" | t }}</th>
             </tr>
           </thead>
 
@@ -639,7 +663,7 @@
                 <span
                   class="rounded-full px-3 py-1 text-xs font-semibold"
                   [ngClass]="statusClass(record.status)">
-                  {{ record.status }}
+                  {{ record.status | t }}
                 </span>
               </td>
 
@@ -687,270 +711,20 @@
             (click)="changePage(page - 1)"
             [disabled]="page === 1"
             class="rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-40">
-            Previous
+            {{ "Previous" | t }}
           </button>
 
           <button
             (click)="changePage(page + 1)"
             [disabled]="page >= totalPages"
             class="rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:opacity-40">
-            Next
+            {{ "Next" | t }}
           </button>
 
         </div>
       </div>
 
     </div>
-  </div>
-
-  <!-- Monthly View -->
-  <div *ngIf="viewMode === 'monthly'">
-
-    <!-- Month Navigation -->
-    <div class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-
-      <div>
-        <h2 class="text-xl font-bold text-slate-800">
-          {{ monthLabel }}
-        </h2>
-
-        <p class="text-sm text-slate-500">
-          {{ isEmployee ? 'Your monthly attendance overview' : 'Organization monthly attendance overview' }}
-        </p>
-      </div>
-
-      <div class="flex items-center gap-2">
-
-        <button
-          (click)="changeMonth(-1)"
-          class="rounded-lg border border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-50">
-          ←
-        </button>
-
-        <button
-          (click)="changeMonth(1)"
-          class="rounded-lg border border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-50">
-          →
-        </button>
-
-      </div>
-    </div>
-
-    <!-- Monthly Summary -->
-    <div class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
-
-      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <p class="text-sm text-slate-500">Present</p>
-        <h3 class="mt-2 text-2xl font-bold text-green-600">
-          {{ presentCount }}
-        </h3>
-      </div>
-
-      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <p class="text-sm text-slate-500">Late</p>
-        <h3 class="mt-2 text-2xl font-bold text-yellow-600">
-          {{ lateCount }}
-        </h3>
-      </div>
-
-      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <p class="text-sm text-slate-500">Absent</p>
-        <h3 class="mt-2 text-2xl font-bold text-red-600">
-          {{ absentCount }}
-        </h3>
-      </div>
-
-      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <p class="text-sm text-slate-500">Half Day</p>
-        <h3 class="mt-2 text-2xl font-bold text-orange-600">
-          {{ halfDayCount }}
-        </h3>
-      </div>
-
-      <div class="col-span-2 rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:col-span-1">
-        <p class="text-sm text-slate-500">Working Hours</p>
-        <h3 class="mt-2 text-2xl font-bold text-blue-600">
-          {{ totalWorkHours }}
-        </h3>
-      </div>
-
-    </div>
-
-    <!-- Calendar -->
-    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-
-      <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
-
-        <h2 class="font-semibold text-slate-800">
-          Attendance Calendar
-        </h2>
-
-        <div class="flex flex-wrap gap-3 text-xs text-slate-600">
-
-          <span class="flex items-center gap-1">
-            <span class="h-2.5 w-2.5 rounded-full bg-green-500"></span>
-            Present
-          </span>
-
-          <span class="flex items-center gap-1">
-            <span class="h-2.5 w-2.5 rounded-full bg-yellow-500"></span>
-            Late
-          </span>
-
-          <span class="flex items-center gap-1">
-            <span class="h-2.5 w-2.5 rounded-full bg-red-500"></span>
-            Absent
-          </span>
-
-          <span class="flex items-center gap-1">
-            <span class="h-2.5 w-2.5 rounded-full bg-orange-500"></span>
-            Half Day
-          </span>
-
-        </div>
-      </div>
-
-      <div *ngIf="isMonthlyLoading"
-        class="py-12 text-center text-slate-500">
-        Loading monthly attendance...
-      </div>
-
-      <div *ngIf="!isMonthlyLoading">
-
-        <div class="grid grid-cols-7 border-b border-slate-200 pb-3 text-center">
-
-          <div *ngFor="let day of ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']"
-            class="text-xs font-semibold text-slate-500 sm:text-sm">
-            {{ day }}
-          </div>
-
-        </div>
-
-        <div class="mt-2 grid grid-cols-7 gap-1 sm:gap-2">
-
-          <ng-container *ngFor="let day of calendarDays">
-
-            <div *ngIf="day.date === 0"
-              class="min-h-20 sm:min-h-28">
-            </div>
-
-            <button
-              *ngIf="day.date !== 0"
-              (click)="selectDate(day)"
-              [ngClass]="{
-                'border-blue-500 bg-blue-50': selectedDate === day.dateKey,
-                'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50': selectedDate !== day.dateKey,
-                'ring-2 ring-blue-400': isToday(day)
-              }"
-              class="flex min-h-20 flex-col items-center rounded-lg border p-1.5 transition sm:min-h-28 sm:p-3">
-
-              <span class="text-sm font-semibold text-slate-800 sm:text-base">
-                {{ day.date }}
-              </span>
-
-              <div class="mt-2 flex flex-wrap justify-center gap-1">
-
-                <span
-                  *ngFor="let status of day.statuses"
-                  class="h-2 w-2 rounded-full sm:h-2.5 sm:w-2.5"
-                  [ngClass]="statusDot(status)">
-                </span>
-
-              </div>
-
-              <span *ngIf="day.records.length > 0"
-                class="mt-1 text-[10px] text-slate-500 sm:text-xs">
-                {{ day.records.length }} record(s)
-              </span>
-
-            </button>
-
-          </ng-container>
-
-        </div>
-      </div>
-    </div>
-
-    <!-- Selected Date Details -->
-    <div *ngIf="selectedDate"
-      class="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-
-      <div class="border-b border-slate-200 px-5 py-4">
-        <h2 class="font-semibold text-slate-800">
-          Attendance on {{ selectedDate | date:'dd MMM yyyy' }}
-        </h2>
-      </div>
-
-      <div *ngIf="selectedDayRecords.length === 0"
-        class="p-8 text-center text-sm text-slate-500">
-        No attendance records found for this date.
-      </div>
-
-      <div *ngIf="selectedDayRecords.length > 0"
-        class="overflow-x-auto">
-
-        <table class="w-full min-w-[600px] text-left text-sm">
-
-          <thead class="bg-slate-50 text-xs uppercase text-slate-500">
-            <tr>
-              <th *ngIf="isAdmin" class="px-5 py-3">Employee</th>
-              <th class="px-5 py-3">Status</th>
-              <th class="px-5 py-3">Working Hours</th>
-              <!-- ADMIN: show punch times; SUPER_ADMIN: retain existing Sessions column -->
-              <th *ngIf="user?.role === 'ADMIN'" class="px-5 py-3">Punch In</th>
-              <th *ngIf="user?.role === 'ADMIN'" class="px-5 py-3">Punch Out</th>
-              <th *ngIf="user?.role !== 'ADMIN'" class="px-5 py-3">Sessions</th>
-            </tr>
-          </thead>
-
-          <tbody class="divide-y divide-slate-100">
-
-            <tr *ngFor="let record of selectedDayRecords">
-
-              <td *ngIf="isAdmin"
-                class="px-5 py-4 font-medium text-slate-800">
-                {{ employeeName(record) }}
-              </td>
-
-              <td class="px-5 py-4">
-                <span
-                  class="rounded-full px-3 py-1 text-xs font-semibold"
-                  [ngClass]="statusClass(record.status)">
-                  {{ record.status }}
-                </span>
-              </td>
-
-              <td class="px-5 py-4 text-slate-600">
-                {{ formatHours(record.totalWorkMinutes) }}
-              </td>
-
-              <!-- ADMIN: first punch-in and latest punch-out in Indian Standard Time -->
-              <td *ngIf="user?.role === 'ADMIN'" class="px-5 py-4 text-slate-600">
-                {{ record.sessions?.[0]?.punchInAt
-                    ? (record.sessions[0].punchInAt | date:'hh:mm a':'+0530')
-                    : '—' }}
-              </td>
-
-              <td *ngIf="user?.role === 'ADMIN'" class="px-5 py-4 text-slate-600">
-                {{ record.sessions?.length
-                    ? (record.sessions[record.sessions.length - 1].punchOutAt
-                        ? (record.sessions[record.sessions.length - 1].punchOutAt | date:'hh:mm a':'+0530')
-                        : 'Not yet')
-                    : '—' }}
-              </td>
-
-              <!-- SUPER_ADMIN: keep original sessions count -->
-              <td *ngIf="user?.role !== 'ADMIN'" class="px-5 py-4 text-slate-600">
-                {{ record.sessions?.length || 0 }}
-              </td>
-
-            </tr>
-
-          </tbody>
-        </table>
-      </div>
-    </div>
-
   </div>
 
   <!-- General Error -->

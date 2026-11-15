@@ -1,3 +1,5 @@
+import { LanguageSelector } from '../../shared/language-selector';
+import { TranslateTextPipe } from '../../shared/translate-text.pipe';
 import { FeedbackService } from '../../shared/feedback/feedback.service';
 
 import { Component, inject } from '@angular/core';
@@ -10,11 +12,12 @@ import {
 
 import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../../services/auth';
+import { EmployeeDeviceService } from '../../services/employee-device';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TranslateTextPipe, LanguageSelector],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
@@ -31,6 +34,7 @@ export class Login {
 
   private fb = inject(FormBuilder);
   private authService = inject(Auth);
+  private deviceService = inject(EmployeeDeviceService);
   private router = inject(Router);
 
   showPassword = false;
@@ -70,6 +74,10 @@ export class Login {
         const role = response.user.role;
 
         if (role === 'EMPLOYEE') {
+          // Enrollment is automatic after password login. Approval is still required for Punch In/Out.
+          void this.deviceService.ensureRegistered(response.user.id).catch(() => {
+            // The Attendance page provides a retry control and explains enrollment errors.
+          });
           // Employees begin at Attendance for quick punch in/out.
           this.router.navigate(['/attendance']);
         } else if (role === 'SUPER_ADMIN' || role === 'ADMIN') {

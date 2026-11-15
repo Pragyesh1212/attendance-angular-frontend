@@ -10,7 +10,7 @@
       <div class="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"></div>
 
       <p class="mt-4 text-sm text-slate-500">
-        Loading dashboard...
+        {{ "Loading dashboard..." | t }}
       </p>
 
     </div>
@@ -47,11 +47,11 @@
           <div>
 
             <h2>
-              Super Admin <span>Dashboard</span>
+              {{ "Super Admin" | t }} <span>{{ "Dashboard" | t }}</span>
             </h2>
 
             <p>
-              Manage organizations and platform administration from here.
+              {{ "Manage organizations and platform administration from here." | t }}
             </p>
 
           </div>
@@ -62,7 +62,7 @@
             class="super-primary-button">
 
             <span>＋</span>
-            Add Organization
+            {{ "Add Organization" | t }}
 
           </button>
 
@@ -170,10 +170,10 @@
 
               <div>
 
-                <h2>Organization Details</h2>
+                <h2>{{ "Organization Details" | t }}</h2>
 
                 <p>
-                  List of all organizations created in the platform.
+                  {{ "List of all organizations created in the platform." | t }}
                 </p>
 
               </div>
@@ -192,7 +192,7 @@
 
               <input
                 type="text"
-                placeholder="Search organizations..."
+                [placeholder]="'Search organizations...' | t"
                 [(ngModel)]="organizationSearch"
               />
 
@@ -233,7 +233,7 @@
                     [class.active]="org.status === 'ACTIVE'"
                     [class.inactive]="org.status === 'INACTIVE'">
 
-                    {{ org.status }}
+                    {{ org.status | t }}
 
                   </div>
 
@@ -278,18 +278,18 @@
 
               @if (organizationSearch) {
 
-                <h2>No Organizations Found</h2>
+                <h2>{{ "No Organizations Found" | t }}</h2>
 
                 <p>
-                  Try searching with another organization name.
+                  {{ "Try searching with another organization name." | t }}
                 </p>
 
               } @else {
 
-                <h2>No Organizations Yet</h2>
+                <h2>{{ "No Organizations Yet" | t }}</h2>
 
                 <p>
-                  You haven't added any organization to the platform.
+                  {{ "You haven't added any organization to the platform." | t }}
                 </p>
 
                 <button
@@ -298,7 +298,7 @@
                   (click)="openCreateOrganization()">
 
                   <span>＋</span>
-                  Add Organization
+                  {{ "Add Organization" | t }}
 
                 </button>
 
@@ -316,7 +316,7 @@
             {{ organizationSuccessMessage }}
             <button
               type="button"
-              aria-label="Dismiss success message"
+              [attr.aria-label]="'Dismiss success message' | t"
               (click)="organizationSuccessMessage = ''">×</button>
           </div>
         }
@@ -335,21 +335,21 @@
 
               <div class="organization-modal-header">
                 <div>
-                  <h2 id="create-organization-title">Create Organization</h2>
-                  <p>Add a new organization to your AttendEase platform.</p>
+                  <h2 id="create-organization-title">{{ "Create Organization" | t }}</h2>
+                  <p>{{ "Add a new organization to your AttendEase platform." | t }}</p>
                 </div>
 
                 <button
                   type="button"
                   class="organization-modal-close"
-                  aria-label="Close dialog"
+                  [attr.aria-label]="'Close dialog' | t"
                   [disabled]="isSavingOrganization"
                   (click)="closeCreateOrganization()">×</button>
               </div>
 
               <form (ngSubmit)="createOrganization()" class="organization-create-form">
                 <div class="organization-form-group">
-                  <label for="organizationName">Organization Name <span>*</span></label>
+                  <label for="organizationName">{{ "Organization Name" | t }} <span>*</span></label>
                   <input
                     id="organizationName"
                     type="text"
@@ -359,9 +359,9 @@
                     maxlength="150"
                     required
                     autocomplete="organization"
-                    placeholder="Enter organization name"
+                    [placeholder]="'Enter organization name' | t"
                     [disabled]="isSavingOrganization" />
-                  <small>Enter a name between 2 and 150 characters.</small>
+                  <small>{{ "Enter a name between 2 and 150 characters." | t }}</small>
                 </div>
 
                 @if (createOrganizationError) {
@@ -375,7 +375,7 @@
                     type="button"
                     class="organization-cancel-button"
                     [disabled]="isSavingOrganization"
-                    (click)="closeCreateOrganization()">Cancel</button>
+                    (click)="closeCreateOrganization()">{{ "Cancel" | t }}</button>
 
                   <button
                     type="submit"
@@ -411,8 +411,8 @@
           <!-- PAGE HEADING -->
           <div class="admin-page-heading">
             <div>
-              <h2>Company <span>Overview</span></h2>
-              <p>Monitor company-wide workforce and attendance performance.</p>
+              <h2>{{ "Company" | t }} <span>{{ "Overview" | t }}</span></h2>
+              <p>{{ "Monitor company-wide workforce and attendance performance." | t }}</p>
             </div>
           </div>
 
@@ -466,10 +466,10 @@
             <section class="admin-panel admin-attendance-panel">
               <div class="admin-panel-heading">
                 <div>
-                  <h3>Attendance Overview</h3>
-                  <p>Daily attendance percentage for the selected month</p>
+                  <h3>{{ "Attendance Overview" | t }}</h3>
+                  <p>{{ "Daily attendance percentage for the selected month" | t }}</p>
                 </div>
-                <span class="admin-period-label">This Month</span>
+                <span class="admin-period-label">{{ "This Month" | t }}</span>
               </div>
 
               @if (attendanceTrend.length > 0) {
@@ -487,7 +487,7 @@
                   }
                 </div>
                 <div class="admin-chart-legend">
-                  <span><i></i> Attendance rate</span>
+                  <span><i></i> {{ "Attendance rate" | t }}</span>
                 </div>
               } @else {
                 <div class="admin-chart-empty">
@@ -497,8 +497,8 @@
                       <path d="m19 9-5 5-4-4-5 5"/>
                     </svg>
                   </div>
-                  <p>No attendance trend data available.</p>
-                  <span>Attendance activity will appear here once records are available.</span>
+                  <p>{{ "No attendance trend data available." | t }}</p>
+                  <span>{{ "Attendance activity will appear here once records are available." | t }}</span>
                 </div>
               }
             </section>
@@ -507,8 +507,8 @@
             <section class="admin-panel admin-department-panel">
               <div class="admin-panel-heading">
                 <div>
-                  <h3>Department Attendance</h3>
-                  <p>Present employees by department</p>
+                  <h3>{{ "Department Attendance" | t }}</h3>
+                  <p>{{ "Present employees by department" | t }}</p>
                 </div>
               </div>
 
@@ -539,8 +539,8 @@
                       <path d="M8 8h8M8 12h8M8 16h4"/>
                     </svg>
                   </div>
-                  <p>No department data available.</p>
-                  <span>Department attendance will appear here when data is available.</span>
+                  <p>{{ "No department data available." | t }}</p>
+                  <span>{{ "Department attendance will appear here when data is available." | t }}</span>
                 </div>
               }
             </section>
@@ -554,7 +554,7 @@
         <!-- EMPLOYEE DASHBOARD: screenshot-matched, role scoped -->
         <section class="employee-dashboard">
           <header class="employee-page-heading">
-            <h2>My <span>Dashboard</span></h2>
+            <h2>{{ "My" | t }} <span>{{ "Dashboard" | t }}</span></h2>
             <p>Welcome back, {{ employeeName }}. Here's your attendance summary.</p>
           </header>
 
@@ -578,54 +578,54 @@
           </div>
 
           <section class="employee-attendance-panel">
-            <nav class="employee-view-switch" aria-label="Attendance view">
+            <nav class="employee-view-switch" [attr.aria-label]="'Attendance view' | t">
               <button type="button" [class.active]="employeeView === 'daily'" (click)="setEmployeeView('daily')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg> Daily View
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg> {{ "Daily View" | t }}
               </button>
               <button type="button" [class.active]="employeeView === 'monthly'" (click)="setEmployeeView('monthly')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg> Monthly View
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg> {{ "Monthly View" | t }}
               </button>
             </nav>
 
             <div class="employee-details-grid">
               <section class="employee-inner-card">
                 <div class="employee-card-heading employee-history-heading">
-                  <div><h3>My Attendance History</h3><p>Attendance trend for the selected period.</p></div>
+                  <div><h3>{{ "My Attendance History" | t }}</h3><p>{{ "Attendance trend for the selected period." | t }}</p></div>
                   <label class="employee-date-filter">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>
-                    <input type="month" aria-label="Select attendance month" [(ngModel)]="employeeSelectedMonth" />
+                    <input type="month" [attr.aria-label]="'Select attendance month' | t" [(ngModel)]="employeeSelectedMonth" />
                   </label>
                 </div>
-                <div class="employee-chart" role="img" aria-label="Attendance counts by status">
+                <div class="employee-chart" role="img" [attr.aria-label]="'Attendance counts by status' | t">
                   @for (bar of employeeChartBars; track bar.status) {
                     <div class="employee-chart-column" [class.employee-bar-present]="bar.status === 'Present'"
                       [class.employee-bar-late]="bar.status === 'Late'" [class.employee-bar-absent]="bar.status === 'Absent'"
                       [class.employee-bar-half]="bar.status === 'Half Day'">
                       <strong>{{ bar.count }}</strong>
                       <div class="employee-chart-track"><div class="employee-chart-fill" [style.height.%]="bar.percent"></div></div>
-                      <span>{{ bar.status }}</span>
+                      <span>{{ bar.status | t }}</span>
                     </div>
                   }
                 </div>
-                <p class="employee-data-note">Chart uses attendance records available from your dashboard API.</p>
+                <p class="employee-data-note">{{ "Chart uses attendance records available from your dashboard API." | t }}</p>
               </section>
 
               <section class="employee-inner-card">
-                <div class="employee-card-heading"><h3>My Attendance Records</h3><p>Your attendance details for the selected period.</p></div>
+                <div class="employee-card-heading"><h3>{{ "My Attendance Records" | t }}</h3><p>{{ "Your attendance details for the selected period." | t }}</p></div>
                 @if (employeeView === 'monthly') {
                   <div class="employee-monthly-summary">Showing {{ employeeFilteredAttendance.length }} available records for {{ employeeSelectedMonth || 'all months' }}.</div>
                 }
                 <div class="employee-table-wrap">
                   <table class="employee-record-table">
-                    <thead><tr><th>Date</th><th>Punch In</th><th>Punch Out</th><th>Work Hours</th><th>Status</th></tr></thead>
+                    <thead><tr><th>{{ "Date" | t }}</th><th>{{ "Punch In" | t }}</th><th>{{ "Punch Out" | t }}</th><th>{{ "Work Hours" | t }}</th><th>{{ "Status" | t }}</th></tr></thead>
                     <tbody>
                       @for (record of employeeFilteredAttendance; track record.date) {
                         <tr><td>{{ record.date }}</td><td>{{ record.punchIn }}</td><td>{{ record.punchOut }}</td><td>{{ record.workHours }}</td>
                           <td><span class="employee-status" [class.present]="record.status === 'PRESENT'"
                             [class.late]="record.status === 'LATE'" [class.absent]="record.status === 'ABSENT'"
-                            [class.half]="record.status === 'HALF_DAY'">{{ record.status.replace('_', ' ') }}</span></td></tr>
+                            [class.half]="record.status === 'HALF_DAY'">{{ record.status.replace('_', ' ') | t }}</span></td></tr>
                       } @empty {
-                        <tr><td colspan="5" class="employee-empty-records">No attendance records available for this period.</td></tr>
+                        <tr><td colspan="5" class="employee-empty-records">{{ "No attendance records available for this period." | t }}</td></tr>
                       }
                     </tbody>
                   </table>

@@ -5,20 +5,20 @@
   <div *ngIf="statusDialogLocation" class="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 p-4" role="presentation" (click)="closeStatusDialog()">
     <section role="dialog" aria-modal="true" aria-labelledby="location-status-title" class="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl" (click)="$event.stopPropagation()">
       <div class="flex items-start gap-4 border-b border-slate-100 p-6">
-        <div [ngClass]="statusDialogLocation.status === 'ACTIVE' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl">{{ statusDialogLocation.status === 'ACTIVE' ? '⊗' : '✓' }}</div>
-        <div class="flex-1"><h2 id="location-status-title" class="text-lg font-bold text-slate-900">{{ statusDialogLocation.status === 'ACTIVE' ? 'Deactivate Work Location?' : 'Activate Work Location?' }}</h2>
-          <p class="mt-2 text-sm leading-6 text-slate-600"><strong class="text-blue-700">{{ statusDialogLocation.name }}</strong> {{ statusDialogLocation.status === 'ACTIVE' ? 'will no longer be available for new employee assignments. Attendance at this location may be blocked.' : 'will become available for employee assignments and attendance checks.' }}</p></div>
-        <button type="button" (click)="closeStatusDialog()" [disabled]="statusSaving" class="text-xl text-slate-400 hover:text-slate-700" aria-label="Close">×</button>
+        <div [ngClass]="statusDialogLocation.status === 'ACTIVE' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl">{{ (statusDialogLocation.status === 'ACTIVE' ? '⊗' : '✓') | t }}</div>
+        <div class="flex-1"><h2 id="location-status-title" class="text-lg font-bold text-slate-900">{{ (statusDialogLocation.status === 'ACTIVE' ? 'Deactivate Work Location?' : 'Activate Work Location?') | t }}</h2>
+          <p class="mt-2 text-sm leading-6 text-slate-600"><strong class="text-blue-700">{{ statusDialogLocation.name }}</strong> {{ (statusDialogLocation.status === 'ACTIVE' ? 'will no longer be available for new employee assignments. Attendance at this location may be blocked.' : 'will become available for employee assignments and attendance checks.') | t }}</p></div>
+        <button type="button" (click)="closeStatusDialog()" [disabled]="statusSaving" class="text-xl text-slate-400 hover:text-slate-700" [attr.aria-label]="'Close' | t">×</button>
       </div>
       <div *ngIf="statusDialogLocation.status === 'INACTIVE' && statusDialogLocation.type === 'OFFICE' && !(statusDialogLocation.allowedPublicIps?.length)" class="px-6 pt-5">
-        <label for="activation-ip" class="mb-2 block text-sm font-semibold text-slate-700">Office public Wi-Fi IP <span class="text-red-500">*</span></label>
+        <label for="activation-ip" class="mb-2 block text-sm font-semibold text-slate-700">{{ "Office public Wi-Fi IP" | t }} <span class="text-red-500">*</span></label>
         <input id="activation-ip" type="text" [(ngModel)]="activationIp" placeholder="e.g. 203.0.113.10" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
-        <p class="mt-2 text-xs text-slate-500">An Office must have an allowed public IP before it can be activated.</p>
+        <p class="mt-2 text-xs text-slate-500">{{ "An Office must have an allowed public IP before it can be activated." | t }}</p>
       </div>
       <p *ngIf="statusError" class="mx-6 mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">{{ statusError }}</p>
       <div class="flex justify-end gap-3 p-6">
-        <button type="button" (click)="closeStatusDialog()" [disabled]="statusSaving" class="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
-        <button type="button" (click)="confirmStatusChange()" [disabled]="statusSaving" [ngClass]="statusDialogLocation.status === 'ACTIVE' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-600 hover:bg-blue-700'" class="rounded-xl px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{{ statusSaving ? 'Updating...' : (statusDialogLocation.status === 'ACTIVE' ? 'Deactivate Location' : 'Activate Location') }}</button>
+        <button type="button" (click)="closeStatusDialog()" [disabled]="statusSaving" class="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">{{ "Cancel" | t }}</button>
+        <button type="button" (click)="confirmStatusChange()" [disabled]="statusSaving" [ngClass]="statusDialogLocation.status === 'ACTIVE' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-600 hover:bg-blue-700'" class="rounded-xl px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{{ (statusSaving ? 'Updating...' : (statusDialogLocation.status === 'ACTIVE' ? 'Deactivate Location' : 'Activate Location')) | t }}</button>
       </div>
     </section>
   </div>
@@ -27,10 +27,10 @@
   <div class="mb-8 flex flex-col justify-between gap-5 rounded-2xl border border-blue-100/70 bg-white px-6 py-7 shadow-sm sm:flex-row sm:items-center">
     <div>
       <h1 class="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">
-        Work <span class="text-blue-600">Locations</span>
+        {{ "Work" | t }} <span class="text-blue-600">{{ "Locations" | t }}</span>
       </h1>
       <p class="mt-1 text-sm text-slate-500">
-        Manage office locations and employee work assignments.
+        {{ "Manage office locations and employee work assignments." | t }}
       </p>
     </div>
 
@@ -40,7 +40,7 @@
       class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#155dfb] px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
     >
       <span class="text-lg">+</span>
-      Add Work Location
+      {{ "Add Work Location" | t }}
     </button>
   </div>
 
@@ -67,7 +67,7 @@
     <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-slate-500">Total Locations</p>
+          <p class="text-sm font-medium text-slate-500">{{ "Total Locations" | t }}</p>
           <h2 class="mt-2 text-3xl font-bold text-slate-900">
             {{ locations.length }}
           </h2>
@@ -81,7 +81,7 @@
     <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-slate-500">Active Locations</p>
+          <p class="text-sm font-medium text-slate-500">{{ "Active Locations" | t }}</p>
           <h2 class="mt-2 text-3xl font-bold text-green-600">
             {{ activeCount }}
           </h2>
@@ -95,7 +95,7 @@
     <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-slate-500">Inactive Locations</p>
+          <p class="text-sm font-medium text-slate-500">{{ "Inactive Locations" | t }}</p>
           <h2 class="mt-2 text-3xl font-bold text-slate-500">
             {{ inactiveCount }}
           </h2>
@@ -113,9 +113,9 @@
 
     <div class="flex flex-col justify-between gap-4 border-b border-slate-100 px-6 py-6 sm:flex-row sm:items-center">
       <div>
-        <h2 class="text-lg font-bold text-slate-900">All Locations</h2>
+        <h2 class="text-lg font-bold text-slate-900">{{ "All Locations" | t }}</h2>
         <p class="mt-1 text-sm text-slate-500">
-          View and search your registered work locations.
+          {{ "View and search your registered work locations." | t }}
         </p>
       </div>
 
@@ -124,7 +124,7 @@
           type="text"
           [(ngModel)]="searchTerm"
           (ngModelChange)="applyFilters()"
-          placeholder="Search locations..."
+          [placeholder]="'Search locations...' | t"
           class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:w-56"
         />
 
@@ -133,11 +133,11 @@
           (ngModelChange)="applyFilters()"
           class="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         >
-          <option value="ALL">All Types</option>
-          <option value="OFFICE">Office</option>
-          <option value="REMOTE">Remote</option>
-          <option value="MEETING">Meeting</option>
-          <option value="FIELD">Field</option>
+          <option value="ALL">{{ "All Types" | t }}</option>
+          <option value="OFFICE">{{ "Office" | t }}</option>
+          <option value="REMOTE">{{ "Remote" | t }}</option>
+          <option value="MEETING">{{ "Meeting" | t }}</option>
+          <option value="FIELD">{{ "Field" | t }}</option>
         </select>
       </div>
     </div>
@@ -145,7 +145,7 @@
     <!-- Loading -->
     <div *ngIf="loading" class="p-12 text-center">
       <div class="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"></div>
-      <p class="mt-4 text-sm text-slate-500">Loading locations...</p>
+      <p class="mt-4 text-sm text-slate-500">{{ "Loading locations..." | t }}</p>
     </div>
 
     <!-- Empty State -->
@@ -155,17 +155,17 @@
     >
       <div class="mb-4 text-5xl">📍</div>
       <h3 class="text-lg font-semibold text-slate-800">
-        No work locations found
+        {{ "No work locations found" | t }}
       </h3>
       <p class="mt-2 text-sm text-slate-500">
-        Add a new location or change your search filters.
+        {{ "Add a new location or change your search filters." | t }}
       </p>
       <button
         type="button"
         (click)="openCreateModal()"
         class="mt-5 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
       >
-        Add Location
+        {{ "Add Location" | t }}
       </button>
     </div>
 
@@ -174,13 +174,13 @@
       <table class="w-full min-w-[1050px] text-left text-sm">
         <thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
           <tr>
-            <th class="px-6 py-4 font-semibold">Location</th>
-            <th class="px-6 py-4 font-semibold">Type</th>
-            <th class="px-6 py-4 font-semibold">Address</th>
-            <th class="px-5 py-4 font-semibold">Radius</th>
-            <th class="px-5 py-4 font-semibold">Wi-Fi IP Address</th>
-            <th class="px-6 py-4 font-semibold">Status</th>
-            <th class="px-6 py-4 font-semibold">Actions</th>
+            <th class="px-6 py-4 font-semibold">{{ "Location" | t }}</th>
+            <th class="px-6 py-4 font-semibold">{{ "Type" | t }}</th>
+            <th class="px-6 py-4 font-semibold">{{ "Address" | t }}</th>
+            <th class="px-5 py-4 font-semibold">{{ "Radius" | t }}</th>
+            <th class="px-5 py-4 font-semibold">{{ "Wi-Fi IP Address" | t }}</th>
+            <th class="px-6 py-4 font-semibold">{{ "Status" | t }}</th>
+            <th class="px-6 py-4 font-semibold">{{ "Actions" | t }}</th>
           </tr>
         </thead>
 
@@ -219,7 +219,7 @@
                 </div>
               </ng-container>
               <ng-template #noWifiIps>
-                <span class="inline-flex items-center gap-1.5 text-xs text-slate-400"><span class="h-1.5 w-1.5 rounded-full bg-slate-300"></span>Not configured</span>
+                <span class="inline-flex items-center gap-1.5 text-xs text-slate-400"><span class="h-1.5 w-1.5 rounded-full bg-slate-300"></span>{{ "Not configured" | t }}</span>
               </ng-template>
             </td>
 
@@ -229,7 +229,7 @@
                 class="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700"
               >
                 <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
-                Active
+                {{ "Active" | t }}
               </span>
 
               <span
@@ -237,13 +237,13 @@
                 class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600"
               >
                 <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
-                Inactive
+                {{ "Inactive" | t }}
               </span>
             </td>
             <td class="px-6 py-4">
               <div class="flex items-center gap-2">
                 <button type="button" (click)="openEditModal(location)" [disabled]="location.status !== 'ACTIVE'"
-                  title="Edit location and Wi-Fi IPs" [attr.aria-label]="'Edit ' + location.name"
+                  [attr.title]="'Edit location and Wi-Fi IPs' | t" [attr.aria-label]="'Edit ' + location.name"
                   class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 text-blue-700 transition hover:bg-blue-100 focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40">
                   <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/></svg>
                 </button>
@@ -285,35 +285,35 @@
 
         <div class="mt-4 grid grid-cols-2 gap-3 text-xs">
           <div class="col-span-2">
-            <p class="text-slate-400">Address</p>
+            <p class="text-slate-400">{{ "Address" | t }}</p>
             <p class="mt-1 break-words font-medium leading-5 text-slate-700">
               {{ getLocationAddress(location) }}
             </p>
           </div>
           <div>
-            <p class="text-slate-400">Radius</p>
+            <p class="text-slate-400">{{ "Radius" | t }}</p>
             <p class="mt-1 font-medium text-slate-700">{{ location.radiusMeters }} m</p>
           </div>
           <div class="col-span-2">
-            <p class="text-slate-400">Wi-Fi IP Address</p>
+            <p class="text-slate-400">{{ "Wi-Fi IP Address" | t }}</p>
             <p *ngIf="location.allowedPublicIps && location.allowedPublicIps.length" class="mt-1 break-words font-mono font-medium text-blue-700">{{ location.allowedPublicIps.join(', ') }}</p>
-            <p *ngIf="!location.allowedPublicIps || !location.allowedPublicIps.length" class="mt-1 text-slate-400">Not configured</p>
+            <p *ngIf="!location.allowedPublicIps || !location.allowedPublicIps.length" class="mt-1 text-slate-400">{{ "Not configured" | t }}</p>
           </div>
           <div>
-            <p class="text-slate-400">Status</p>
+            <p class="text-slate-400">{{ "Status" | t }}</p>
             <p
               class="mt-1 font-semibold"
               [ngClass]="location.status === 'ACTIVE' ? 'text-green-600' : 'text-slate-500'"
             >
-              {{ location.status }}
+              {{ location.status | t }}
             </p>
           </div>
         </div>
         <div class="mt-3 flex flex-wrap gap-2">
-          <button type="button" (click)="openEditModal(location)" [disabled]="location.status !== 'ACTIVE'" class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 disabled:opacity-40">✎ Edit Location</button>
+          <button type="button" (click)="openEditModal(location)" [disabled]="location.status !== 'ACTIVE'" class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 disabled:opacity-40">{{ "✎ Edit Location" | t }}</button>
           <button type="button" (click)="openStatusDialog(location)" [disabled]="statusSaving"
             [ngClass]="location.status === 'ACTIVE' ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'"
-            class="rounded-lg border px-3 py-2 text-xs font-semibold disabled:opacity-40">{{ location.status === 'ACTIVE' ? '⊗ Deactivate' : '✓ Activate' }}</button>
+            class="rounded-lg border px-3 py-2 text-xs font-semibold disabled:opacity-40">{{ (location.status === 'ACTIVE' ? '⊗ Deactivate' : '✓ Activate') | t }}</button>
         </div>
       </div>
     </div>
@@ -325,10 +325,10 @@
 
     <div class="mb-6">
       <h2 class="text-lg font-bold text-slate-900">
-        Employee Location Assignment
+        {{ "Employee Location Assignment" | t }}
       </h2>
       <p class="mt-1 text-sm text-slate-500">
-        Assign a permanent or temporary work location to an employee.
+        {{ "Assign a permanent or temporary work location to an employee." | t }}
       </p>
     </div>
 
@@ -352,7 +352,7 @@
       <!-- Assignment Type -->
       <div>
         <label class="mb-2 block text-sm font-semibold text-slate-700">
-          Assignment Type
+          {{ "Assignment Type" | t }}
         </label>
 
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -364,9 +364,9 @@
               ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-100'
               : 'border-slate-200 hover:border-slate-300'"
           >
-            <p class="font-semibold text-slate-900">Permanent Location</p>
+            <p class="font-semibold text-slate-900">{{ "Permanent Location" | t }}</p>
             <p class="mt-1 text-xs text-slate-500">
-              Set the employee's regular work location.
+              {{ "Set the employee's regular work location." | t }}
             </p>
           </button>
 
@@ -378,9 +378,9 @@
               ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-100'
               : 'border-slate-200 hover:border-slate-300'"
           >
-            <p class="font-semibold text-slate-900">Temporary Location</p>
+            <p class="font-semibold text-slate-900">{{ "Temporary Location" | t }}</p>
             <p class="mt-1 text-xs text-slate-500">
-              Assign a location for a specific period.
+              {{ "Assign a location for a specific period." | t }}
             </p>
           </button>
         </div>
@@ -391,25 +391,25 @@
         <!-- Employee Profile ID -->
         <div>
           <label class="mb-2 block text-sm font-semibold text-slate-700">
-            Employee Profile ID
+            {{ "Employee Profile ID" | t }}
           </label>
           <input
             type="text"
             name="employeeProfileId"
             [(ngModel)]="assignmentForm.employeeProfileId"
-            placeholder="Enter employee profile UUID"
+            [placeholder]="'Enter employee profile UUID' | t"
             required
             class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
           <p class="mt-1.5 text-xs text-slate-400">
-            Enter the employee profile ID, not the user ID.
+            {{ "Enter the employee profile ID, not the user ID." | t }}
           </p>
         </div>
 
         <!-- Work Location -->
         <div>
           <label class="mb-2 block text-sm font-semibold text-slate-700">
-            Work Location
+            {{ "Work Location" | t }}
           </label>
           <select
             name="workLocationId"
@@ -417,14 +417,14 @@
             required
             class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           >
-            <option value="">Select a work location</option>
+            <option value="">{{ "Select a work location" | t }}</option>
             <option
               *ngFor="let location of locations"
               [value]="location.id"
               [disabled]="location.status !== 'ACTIVE'"
             >
               {{ location.name }} ({{ typeLabel(location.type) }})
-              {{ location.status !== 'ACTIVE' ? '- Inactive' : '' }}
+              {{ (location.status !== 'ACTIVE' ? '- Inactive' : '') | t }}
             </option>
           </select>
         </div>
@@ -434,7 +434,7 @@
 
           <div>
             <label class="mb-2 block text-sm font-semibold text-slate-700">
-              Start Date & Time
+              {{ "Start Date & Time" | t }}
             </label>
             <input
               type="datetime-local"
@@ -447,7 +447,7 @@
 
           <div>
             <label class="mb-2 block text-sm font-semibold text-slate-700">
-              End Date & Time
+              {{ "End Date & Time" | t }}
             </label>
             <input
               type="datetime-local"
@@ -460,13 +460,13 @@
 
           <div class="md:col-span-2">
             <label class="mb-2 block text-sm font-semibold text-slate-700">
-              Reason (Optional)
+              {{ "Reason (Optional)" | t }}
             </label>
             <textarea
               name="reason"
               [(ngModel)]="assignmentForm.reason"
               rows="3"
-              placeholder="Enter the reason for temporary assignment..."
+              [placeholder]="'Enter the reason for temporary assignment...' | t"
               class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             ></textarea>
           </div>
@@ -480,7 +480,7 @@
           [disabled]="assigning"
           class="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {{ assigning ? 'Assigning...' : 'Assign Work Location' }}
+          {{ (assigning ? 'Assigning...' : 'Assign Work Location') | t }}
         </button>
       </div>
 
@@ -508,10 +508,10 @@
     <div class="flex items-center justify-between border-b border-blue-100 bg-gradient-to-r from-blue-50 via-white to-white px-6 py-5">
       <div>
         <h2 class="text-xl font-bold text-slate-900">
-          {{ modalMode === 'edit' ? 'Edit Work Location' : 'Add Work Location' }}
+          {{ (modalMode === 'edit' ? 'Edit Work Location' : 'Add Work Location') | t }}
         </h2>
         <p class="mt-1 text-sm text-slate-500">
-          {{ modalMode === 'edit' ? 'Update location details and authorized office Wi-Fi.' : 'Register a new location for attendance tracking.' }}
+          {{ (modalMode === 'edit' ? 'Update location details and authorized office Wi-Fi.' : 'Register a new location for attendance tracking.') | t }}
         </p>
       </div>
 
@@ -539,13 +539,13 @@
       <!-- Location Name -->
       <div>
         <label class="mb-2 block text-sm font-semibold text-slate-700">
-          Location Name <span class="text-red-500">*</span>
+          {{ "Location Name" | t }} <span class="text-red-500">*</span>
         </label>
         <input
           type="text"
           name="locationName"
           [(ngModel)]="form.name"
-          placeholder="e.g. Head Office, Dehradun Branch"
+          [placeholder]="'e.g. Head Office, Dehradun Branch' | t"
           class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
       </div>
@@ -553,7 +553,7 @@
       <!-- Location Type -->
       <div>
         <label class="mb-2 block text-sm font-semibold text-slate-700">
-          Location Type <span class="text-red-500">*</span>
+          {{ "Location Type" | t }} <span class="text-red-500">*</span>
         </label>
         <select
           name="locationType"
@@ -569,7 +569,7 @@
       <!-- Location Selection Method -->
       <div>
         <label class="mb-3 block text-sm font-semibold text-slate-700">
-          Choose Location
+          {{ "Choose Location" | t }}
         </label>
 
         <div class="grid grid-cols-2 gap-3">
@@ -582,8 +582,8 @@
               : 'border-slate-200 hover:border-slate-300'"
           >
             <div class="mb-2 text-xl">📍</div>
-            <p class="text-sm font-semibold text-slate-900">Current Location</p>
-            <p class="mt-1 text-xs text-slate-500">Use device GPS</p>
+            <p class="text-sm font-semibold text-slate-900">{{ "Current Location" | t }}</p>
+            <p class="mt-1 text-xs text-slate-500">{{ "Use device GPS" | t }}</p>
           </button>
 
           <button
@@ -595,8 +595,8 @@
               : 'border-slate-200 hover:border-slate-300'"
           >
             <div class="mb-2 text-xl">🔎</div>
-            <p class="text-sm font-semibold text-slate-900">Search Place</p>
-            <p class="mt-1 text-xs text-slate-500">Find an address</p>
+            <p class="text-sm font-semibold text-slate-900">{{ "Search Place" | t }}</p>
+            <p class="mt-1 text-xs text-slate-500">{{ "Find an address" | t }}</p>
           </button>
         </div>
       </div>
@@ -609,10 +609,10 @@
         <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div>
             <p class="text-sm font-semibold text-slate-800">
-              Detect your current location
+              {{ "Detect your current location" | t }}
             </p>
             <p class="mt-1 text-xs text-slate-500">
-              Your browser will ask for location permission.
+              {{ "Your browser will ask for location permission." | t }}
             </p>
           </div>
 
@@ -622,7 +622,7 @@
             [disabled]="detectingLocation"
             class="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
           >
-            {{ detectingLocation ? 'Detecting...' : 'Detect Location' }}
+            {{ (detectingLocation ? 'Detecting...' : 'Detect Location') | t }}
           </button>
         </div>
       </div>
@@ -633,7 +633,7 @@
         class="space-y-3"
       >
         <label class="block text-sm font-semibold text-slate-700">
-          Search for a place
+          {{ "Search for a place" | t }}
         </label>
 
         <div class="flex flex-col gap-2 sm:flex-row">
@@ -642,7 +642,7 @@
             name="placeSearch"
             [(ngModel)]="placeSearchQuery"
             (keyup.enter)="searchPlace()"
-            placeholder="e.g. Connaught Place, New Delhi"
+            [placeholder]="'e.g. Connaught Place, New Delhi' | t"
             class="min-w-0 flex-1 rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
 
@@ -652,7 +652,7 @@
             [disabled]="searchingLocation"
             class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
           >
-            {{ searchingLocation ? 'Searching...' : 'Search' }}
+            {{ (searchingLocation ? 'Searching...' : 'Search') | t }}
           </button>
         </div>
 
@@ -694,7 +694,7 @@
           <span class="text-xl">✓</span>
           <div class="min-w-0">
             <p class="text-sm font-semibold text-green-800">
-              Location selected
+              {{ "Location selected" | t }}
             </p>
             <p class="mt-1 break-words text-xs text-green-700">
               {{ selectedPlaceLabel }}
@@ -710,13 +710,13 @@
       <!-- Address -->
       <div>
         <label class="mb-2 block text-sm font-semibold text-slate-700">
-          Address
+          {{ "Address" | t }}
         </label>
         <textarea
           name="address"
           [(ngModel)]="form.address"
           rows="2"
-          placeholder="Enter the complete address"
+          [placeholder]="'Enter the complete address' | t"
           class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         ></textarea>
       </div>
@@ -725,10 +725,10 @@
       <div class="rounded-2xl border border-blue-100 bg-blue-50/50 p-4 sm:p-5">
         <div class="mb-3 flex items-center gap-3">
           <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-xl text-blue-700">⌁</div>
-          <div><h3 class="text-sm font-bold text-slate-900">Office Wi-Fi IP Address</h3>
-          <p class="text-xs text-slate-500">Configure the allowed public IPs for this location.</p></div>
+          <div><h3 class="text-sm font-bold text-slate-900">{{ "Office Wi-Fi IP Address" | t }}</h3>
+          <p class="text-xs text-slate-500">{{ "Configure the allowed public IPs for this location." | t }}</p></div>
         </div>
-        <label class="mb-2 block text-sm font-semibold text-slate-700">Allowed public IPv4 addresses <span *ngIf="form.type === 'OFFICE'" class="text-red-500">*</span></label>
+        <label class="mb-2 block text-sm font-semibold text-slate-700">{{ "Allowed public IPv4 addresses" | t }} <span *ngIf="form.type === 'OFFICE'" class="text-red-500">*</span></label>
         <textarea name="wifiIpsText" [(ngModel)]="form.wifiIpsText" rows="2"
           placeholder="e.g. 203.0.113.10, 198.51.100.20"
           class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"></textarea>
@@ -738,7 +738,7 @@
       <!-- Geofence Radius -->
       <div>
         <label class="mb-2 block text-sm font-semibold text-slate-700">
-          Attendance Radius (metres)
+          {{ "Attendance Radius (metres)" | t }}
         </label>
         <input
           type="number"
@@ -749,13 +749,13 @@
           class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
         <p class="mt-1.5 text-xs text-slate-400">
-          Minimum 10 metres and maximum 5000 metres.
+          {{ "Minimum 10 metres and maximum 5000 metres." | t }}
         </p>
       </div>
 
       <!-- OpenStreetMap Attribution -->
       <p class="text-xs text-slate-400">
-        Place search and address lookup powered by
+        {{ "Place search and address lookup powered by" | t }}
         <a
           href="https://www.openstreetmap.org/copyright"
           target="_blank"
@@ -776,7 +776,7 @@
         [disabled]="saving"
         class="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50"
       >
-        Cancel
+        {{ "Cancel" | t }}
       </button>
 
       <button
@@ -785,7 +785,7 @@
         [disabled]="saving"
         class="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {{ saving ? 'Saving Location...' : (modalMode === 'edit' ? 'Update Work Location' : 'Save Work Location') }}
+        {{ (saving ? 'Saving Location...' : (modalMode === 'edit' ? 'Update Work Location' : 'Save Work Location')) | t }}
       </button>
     </div>
 

@@ -1,6 +1,8 @@
+import { TranslateTextPipe } from '../../shared/translate-text.pipe';
 import { FeedbackService } from '../../shared/feedback/feedback.service';
+import { RouterLink } from '@angular/router';
 
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormsModule,
@@ -37,11 +39,11 @@ import {
   imports: [
     CommonModule,
     FormsModule,
-    ReactiveFormsModule
-  ],
+    ReactiveFormsModule,
+    RouterLink, TranslateTextPipe],
   templateUrl: './employees.html'
 })
-export class Employees implements OnInit {
+export class Employees implements OnInit, OnDestroy {
   private readonly uiFeedback = inject(FeedbackService);
 
   // Centralized notification: the old inline banner reads an empty value.
@@ -75,6 +77,11 @@ export class Employees implements OnInit {
   workLocations: WorkLocation[] = [];
   shifts: Shift[] = [];
   selectedEmployeeShiftId: string | null = null;
+  shiftSelections: string[] = [''];
+  private originalShiftSelections: string[] = [];
+  selectedAvatarFile: File | null = null;
+  avatarPreview: string | null = null;
+  private displayedAvatars = new Set<string>();
 
   // Loading states
   loading = false;
@@ -169,14 +176,11 @@ export class Employees implements OnInit {
 
     departmentId: [''],
 
-    shiftId: [''],
+    numberOfShifts: [1, [Validators.required, Validators.min(1), Validators.max(24), Validators.pattern(/^\d+$/)]],
 
     joiningDate: [''],
 
-    avatarUrl: [
-      '',
-      Validators.pattern(/^https?:\/\/.+/i)
-    ]
+
   });
 
   // ==========================================
@@ -185,6 +189,99 @@ export class Employees implements OnInit {
 
   get isSuperAdmin(): boolean {
     return this.authService.getUser()?.role === 'SUPER_ADMIN';
+  }
+
+  ngOnDestroy(): void {
+    this.clearAvatarPreview();
+    this.releaseDisplayedAvatars();
+  }
+
+  syncShiftCount(): void {
+    const count = Number(this.employeeForm.controls.numberOfShifts.value);
+    if (!Number.isInteger(count) || count < 1 || count > 24) return;
+    this.shiftSelections = Array.from({ length: count }, (_, index) => this.shiftSelections[index] || '');
+  }
+
+  trackByShiftIndex(index: number): number { return index; }
+
+  selectShift(index: number, value: string): void {
+    this.shiftSelections[index] = value;
+  }
+
+  private clearAvatarPreview(): void {
+    if (this.avatarPreview) URL.revokeObjectURL(this.avatarPreview);
+    this.avatarPreview = null;
+    this.selectedAvatarFile = null;
+  }
+
+  onAvatarChosen(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 1024 * 1024) {
+      this.errorMessage = 'Choose a JPEG, PNG or WebP image no larger than 1 MB.';
+      input.value = '';
+      return;
+    }
+    this.clearAvatarPreview();
+    this.selectedAvatarFile = file;
+    this.avatarPreview = URL.createObjectURL(file);
+  }
+
+  private releaseDisplayedAvatars(): void {
+    this.displayedAvatars.forEach(url => URL.revokeObjectURL(url));
+    this.displayedAvatars.clear();
+  }
+
+  private hydrateAvatars(employees: Employee[]): void {
+    for (const employee of employees) {
+      // New photos live in private S3: keep the permanent stored URL in the API,
+      // but never request that private URL directly from <img> (would return 403).
+      // The existing authenticated NestJS endpoint supplies the visible blob.
+      // Older external image URLs remain untouched for backward compatibility.
+      const storedUrl = employee.employeeProfile.avatarUrl;
+      if (!employee.employeeProfile.avatar && !storedUrl) continue;
+      if (storedUrl && /^https:\/\/[^/]+\.s3\.[^/]+\.amazonaws\.com\/employee-avatars\//i.test(storedUrl)) {
+        employee.employeeProfile.avatarUrl = undefined;
+      }
+      this.employeeService.getEmployeeAvatar(employee.id).subscribe({
+        next: blob => {
+          // Ignore stale page results after filtering or navigating pages.
+          if (!this.employees.includes(employee)) return;
+          const url = URL.createObjectURL(blob);
+          this.displayedAvatars.add(url);
+          employee.employeeProfile.avatarUrl = url;
+          this.cdr.detectChanges();
+        },
+        error: () => { /* Keep initials when the image is unavailable. */ }
+      });
+    }
+  }
+
+  private validateSelectedShifts(): boolean {
+    if (this.shiftSelections.some(id => !id) ||
+        new Set(this.shiftSelections).size !== this.shiftSelections.length ||
+        this.shiftSelections.length !== Number(this.employeeForm.controls.numberOfShifts.value)) {
+      this.errorMessage = 'Select a different shift in every dropdown.';
+      return false;
+    }
+    const selected = this.shiftSelections.map(id => this.shifts.find(shift => shift.id === id));
+    if (selected.some(shift => !shift)) {
+      this.errorMessage = 'One of the selected shifts is no longer available.';
+      return false;
+    }
+    for (let i = 0; i < selected.length; i++) {
+      const shift = selected[i]!;
+      if (selected.length > 1 && shift.endTime <= shift.startTime) {
+        this.errorMessage = 'Overnight shifts are not supported for multiple attendance sessions yet.';
+        return false;
+      }
+      if (i && shift.startTime < selected[i - 1]!.endTime) {
+        this.errorMessage = 'Choose shifts in time order without overlapping time ranges.';
+        return false;
+      }
+    }
+    return true;
   }
 
   ngOnInit(): void {
@@ -293,7 +390,9 @@ export class Employees implements OnInit {
 
       next: (response) => {
 
+        this.releaseDisplayedAvatars();
         this.employees = response.data || [];
+        this.hydrateAvatars(this.employees);
 
         this.totalEmployees =
           response.pagination?.total || 0;
@@ -560,11 +659,13 @@ export class Employees implements OnInit {
       phone: '',
       designation: '',
       departmentId: '',
-      shiftId: '',
-      joiningDate: '',
-      avatarUrl: ''
+      numberOfShifts: 1,
+      joiningDate: ''
 
     });
+    this.shiftSelections = [''];
+    this.originalShiftSelections = [];
+    this.clearAvatarPreview();
   }
 
   // ==========================================
@@ -643,20 +744,21 @@ export class Employees implements OnInit {
       departmentId:
         employee.employeeProfile.department?.id || '',
 
-      shiftId:
-        employee.employeeProfile.shift?.id ||
-        employee.employeeProfile.shiftId ||
-        '',
+      numberOfShifts: employee.employeeProfile.shiftAssignments?.length || 1,
 
       joiningDate:
         employee.employeeProfile.joiningDate
           ? employee.employeeProfile.joiningDate.substring(0, 10)
           : '',
 
-      avatarUrl:
-        employee.employeeProfile.avatarUrl || ''
 
     });
+
+    this.clearAvatarPreview();
+    this.shiftSelections = employee.employeeProfile.shiftAssignments?.length
+      ? employee.employeeProfile.shiftAssignments.map(a => a.shift.id)
+      : [employee.employeeProfile.shift?.id || employee.employeeProfile.shiftId || ''];
+    this.originalShiftSelections = [...this.shiftSelections];
 
     // Current backend update DTO does not support password
     // or employeeCode updates.
@@ -682,6 +784,7 @@ export class Employees implements OnInit {
     }
 
     this.showAddModal = false;
+    this.clearAvatarPreview();
 
     this.selectedEmployeeId = null;
     this.selectedEmployeeShiftId = null;
@@ -707,7 +810,7 @@ export class Employees implements OnInit {
 
     this.employeeForm.markAllAsTouched();
 
-    if (this.employeeForm.invalid) {
+    if (this.employeeForm.invalid || !this.validateSelectedShifts()) {
       return;
     }
 
@@ -726,14 +829,10 @@ export class Employees implements OnInit {
   // ==========================================
 
   private createNewEmployee(): void {
-
     this.saving = true;
     this.errorMessage = '';
     this.successMessage = '';
-
     const formValue = this.employeeForm.getRawValue();
-    const selectedShiftId = formValue.shiftId || '';
-
     const payload: CreateEmployeePayload = {
       email: formValue.email!.trim(),
       password: formValue.password!,
@@ -744,70 +843,33 @@ export class Employees implements OnInit {
       designation: formValue.designation?.trim() || undefined,
       departmentId: formValue.departmentId || undefined,
       joiningDate: formValue.joiningDate || undefined,
-      avatarUrl: formValue.avatarUrl?.trim() || undefined
+      shiftIds: [...this.shiftSelections],
     };
-
     this.employeeService.createEmployee(payload).subscribe({
-      next: (response: any) => {
-        const createdEmployeeId =
-          response?.employee?.id ||
-          response?.data?.employee?.id ||
-          response?.data?.id ||
-          response?.data?.user?.id ||
-          response?.id;
-
-        if (!selectedShiftId) {
-          this.completeEmployeeSave(
-            response?.message || 'Employee created successfully.'
-          );
-          return;
+      next: response => {
+        const id = response?.employee?.id;
+        if (this.selectedAvatarFile && id) {
+          this.employeeService.uploadEmployeeAvatar(id, this.selectedAvatarFile).subscribe({
+            next: () => this.completeEmployeeSave('Employee, shifts and photo saved successfully.'),
+            error: (error) => this.completeEmployeeSave(
+              `Employee and shifts saved, but the photo upload failed: ${error.error?.message || 'You can retry it from Edit Employee.'}`),
+          });
+        } else {
+          this.completeEmployeeSave(response?.message || 'Employee created with assigned shifts.');
         }
-
-        if (!createdEmployeeId) {
-          // Creation succeeded. Close the form even if the API did not
-          // return an ID needed for the optional shift assignment.
-          this.completeEmployeeSave(
-            'Employee created successfully, but the shift could not be assigned because the employee ID was not returned.'
-          );
-          return;
-        }
-
-        this.employeeService.assignEmployeeShift(
-          createdEmployeeId,
-          selectedShiftId
-        ).subscribe({
-          next: (shiftResponse: any) => {
-            this.completeEmployeeSave(
-              `${response?.message || 'Employee created successfully.'} ${shiftResponse?.message || 'Shift assigned successfully.'}`
-            );
-          },
-          error: (error) => {
-            this.saving = false;
-            this.showAddModal = false;
-            this.successMessage =
-              'Employee created successfully, but shift assignment failed.';
-            this.errorMessage =
-              error.error?.message ||
-              'Employee was created, but the selected shift could not be assigned.';
-            this.currentPage = 1;
-            this.loadEmployees();
-            this.cdr.detectChanges();
-          }
-        });
       },
       error: (error) => {
         this.saving = false;
-        this.errorMessage =
-          error.error?.message ||
-          'Unable to create employee. Please try again.';
+        this.errorMessage = error.error?.message || 'Unable to create employee.';
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
   private completeEmployeeSave(message: string): void {
     this.saving = false;
     this.showAddModal = false;
+    this.clearAvatarPreview();
     this.selectedEmployeeId = null;
     this.selectedEmployeeShiftId = null;
     this.isEditMode = false;
@@ -823,19 +885,13 @@ export class Employees implements OnInit {
   // ==========================================
 
   private updateExistingEmployee(): void {
-
     if (!this.selectedEmployeeId) {
       this.errorMessage = 'No employee selected for editing.';
       return;
     }
-
     this.saving = true;
     this.errorMessage = '';
-    this.successMessage = '';
-
     const formValue = this.employeeForm.getRawValue();
-    const selectedShiftId = formValue.shiftId || '';
-
     const payload: UpdateEmployeePayload = {
       email: formValue.email!.trim(),
       firstName: formValue.firstName!.trim(),
@@ -844,58 +900,26 @@ export class Employees implements OnInit {
       designation: formValue.designation?.trim() || undefined,
       departmentId: formValue.departmentId || undefined,
       joiningDate: formValue.joiningDate || undefined,
-      avatarUrl: formValue.avatarUrl?.trim() || undefined
+      ...(JSON.stringify(this.shiftSelections) === JSON.stringify(this.originalShiftSelections)
+        ? {} : { shiftIds: [...this.shiftSelections] }),
     };
-
-    this.employeeService.updateEmployee(
-      this.selectedEmployeeId,
-      payload
-    ).subscribe({
-      next: (response: any) => {
-        const shiftChanged =
-          !!selectedShiftId &&
-          selectedShiftId !== this.selectedEmployeeShiftId;
-
-        if (!shiftChanged) {
-          this.completeEmployeeSave(
-            response?.message || 'Employee updated successfully.'
-          );
-          return;
+    this.employeeService.updateEmployee(this.selectedEmployeeId, payload).subscribe({
+      next: response => {
+        if (this.selectedAvatarFile && this.selectedEmployeeId) {
+          this.employeeService.uploadEmployeeAvatar(this.selectedEmployeeId, this.selectedAvatarFile).subscribe({
+            next: () => this.completeEmployeeSave('Employee, shifts and profile image updated successfully.'),
+            error: (error) => this.completeEmployeeSave(
+              `Employee and shifts updated, but the photo upload failed: ${error.error?.message || 'Please retry.'}`),
+          });
+        } else {
+          this.completeEmployeeSave(response?.message || 'Employee updated successfully.');
         }
-
-        this.employeeService.assignEmployeeShift(
-          this.selectedEmployeeId!,
-          selectedShiftId
-        ).subscribe({
-          next: (shiftResponse: any) => {
-            this.completeEmployeeSave(
-              `${response?.message || 'Employee updated successfully.'} ${shiftResponse?.message || 'Shift assigned successfully.'}`
-            );
-          },
-          error: (error) => {
-            this.saving = false;
-            this.showAddModal = false;
-            this.successMessage =
-              'Employee details were updated, but shift assignment failed.';
-            this.errorMessage =
-              error.error?.message ||
-              'Employee details were saved, but the selected shift could not be assigned.';
-            this.selectedEmployeeId = null;
-            this.selectedEmployeeShiftId = null;
-            this.isEditMode = false;
-            this.employeeForm.get('employeeCode')?.enable();
-            this.loadEmployees();
-            this.cdr.detectChanges();
-          }
-        });
       },
       error: (error) => {
         this.saving = false;
-        this.errorMessage =
-          error.error?.message ||
-          'Unable to update employee. Please try again.';
+        this.errorMessage = error.error?.message || 'Unable to update employee.';
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
@@ -987,10 +1011,12 @@ export class Employees implements OnInit {
   }
 
   getShiftName(employee: Employee): string {
+    const assignments = employee.employeeProfile.shiftAssignments;
+    if (assignments?.length) {
+      return assignments.map(a => `Shift ${a.sequence}: ${a.shift.name} (${a.shift.startTime} - ${a.shift.endTime})`).join(' • ');
+    }
     const shift = employee.employeeProfile.shift;
-    return shift
-      ? `${shift.name} (${shift.startTime} - ${shift.endTime})`
-      : 'Not assigned';
+    return shift ? `${shift.name} (${shift.startTime} - ${shift.endTime})` : 'Not assigned';
   }
 
   getStatusClass(status: EmployeeStatus): string {
