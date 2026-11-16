@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Subscription, interval } from 'rxjs';
@@ -40,6 +40,7 @@ interface WorkLocationsResponse {
 })
 export class AttendanceAlerts implements OnInit, OnDestroy {
   private readonly http = inject(HttpClient);
+  private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly baseUrl = `${environment.apiUrl}/attendance/location-alerts`;
   private readonly subscriptions = new Subscription();
   private alertsRequest: Subscription | null = null;
@@ -59,7 +60,10 @@ export class AttendanceAlerts implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.subscriptions.add(this.http.get<WorkLocationsResponse>(`${environment.apiUrl}/work-locations`)
-      .subscribe({ next: result => this.workLocations = result.locations ?? [] }));
+      .subscribe({ next: result => {
+        this.workLocations = result.locations ?? [];
+        this.changeDetector.markForCheck();
+      } }));
     this.loadAlerts();
     // Refresh status quietly while the Admin page is visible.
     this.subscriptions.add(interval(30_000).subscribe(() => {
@@ -85,6 +89,7 @@ export class AttendanceAlerts implements OnInit, OnDestroy {
   loadAlerts(background = false): void {
     if (!background) this.loading = true;
     this.errorMessage = '';
+    this.changeDetector.markForCheck();
     this.alertsRequest?.unsubscribe();
     let params = new HttpParams().set('date', this.date).set('page', this.page).set('limit', this.pageSize);
     if (this.employeeName.trim()) params = params.set('employeeName', this.employeeName.trim());
@@ -96,11 +101,13 @@ export class AttendanceAlerts implements OnInit, OnDestroy {
         this.summary = response.summary;
         this.pagination = response.pagination;
         this.loading = false;
+        this.changeDetector.markForCheck();
       },
       error: () => {
         this.loading = false;
         if (!background) this.alerts = [];
         this.errorMessage = 'Could not load attendance alerts. Please retry.';
+        this.changeDetector.markForCheck();
       },
     });
   }
