@@ -1,7 +1,7 @@
 import { LanguageService } from './language';
 import { Injectable, NgZone, OnDestroy, inject, signal } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { Attendance, EmployeeLocationMonitorStatus } from './attendance';
+import { Subscription, firstValueFrom } from 'rxjs';
+import { Attendance, EmployeeLocationMonitorStatus, LocationAlertFix } from './attendance';
 
 export interface EmployeeLocationWarning {
   locationName: string;
@@ -13,7 +13,8 @@ type Geofence = NonNullable<EmployeeLocationMonitorStatus['location']>;
 /**
  * Keeps GPS in the employee's browser. Only the authenticated employee's
  * active punch-in session and assigned geofence are fetched from the server.
- * This never changes attendance or posts a location trail.
+ * This never changes attendance. One confirmed exit/return episode is posted
+ * to the backend for the organization admin; no continuous GPS trail is sent.
  *
  * Browser geolocation is best-effort: browsers/OSs may suspend it in the
  * background, or completely stop it when the tab/browser is closed.
@@ -48,6 +49,8 @@ export class EmployeeLocationMonitor implements OnDestroy {
   private outsideReadings = 0;
   private insideReadings = 0;
   private outsideEpisode = false;
+  private eventQueue: Array<{ kind: 'EXIT' | 'RETURN'; fix: LocationAlertFix; generation: number }> = [];
+  private sendingEvent = false;
 
   start(): void {
     if (this.started || typeof window === 'undefined') return;
@@ -248,6 +251,7 @@ export class EmployeeLocationMonitor implements OnDestroy {
           locationName: location.name,
           radiusMeters: location.radiusMeters,
         });
+        this.queueLocationEvent('EXIT', position);
         this.showChromeWarning();
         this.startChromeReminders();
       }
@@ -262,6 +266,7 @@ export class EmployeeLocationMonitor implements OnDestroy {
         this.outsideEpisode = false;
         this.clearReminderTimer();
         this.clearChromeReminders();
+        this.queueLocationEvent('RETURN', position);
         this.warning.set(null);
       }
       return;
@@ -385,8 +390,47 @@ export class EmployeeLocationMonitor implements OnDestroy {
     }
   }
 
+  /** Send one event per confirmed transition; preserve ordering during quick exit/return. */
+  private queueLocationEvent(kind: 'EXIT' | 'RETURN', position: GeolocationPosition): void {
+    if (!this.sessionId || !this.geofence || !this.started) return;
+    this.eventQueue.push({
+      kind,
+      generation: this.generation,
+      fix: {
+        sessionId: this.sessionId,
+        workLocationId: this.geofence.id,
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy,
+      },
+    });
+    void this.sendQueuedEvents();
+  }
+
+  private async sendQueuedEvents(): Promise<void> {
+    if (this.sendingEvent) return;
+    this.sendingEvent = true;
+    try {
+      while (this.eventQueue.length) {
+        const event = this.eventQueue.shift()!;
+        if (!this.started || event.generation !== this.generation) continue;
+        try {
+          await firstValueFrom(event.kind === 'EXIT'
+            ? this.attendance.reportGeofenceExit(event.fix)
+            : this.attendance.reportGeofenceReturn(event.fix));
+        } catch (error) {
+          // In-app warnings continue even if the API or GPS-event reporting fails.
+          console.warn('AttendEase could not save geofence transition:', error);
+        }
+      }
+    } finally {
+      this.sendingEvent = false;
+    }
+  }
+
   private stopWatching(): void {
     ++this.generation; // Invalidate queued callbacks from a prior watch/session.
+    this.eventQueue = [];
     if (this.visibleGpsPoll !== null) clearInterval(this.visibleGpsPoll);
     this.visibleGpsPoll = null;
     this.visibleGpsRequestInFlight = false;

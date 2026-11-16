@@ -1,0 +1,122 @@
+<div class="alerts-page">
+  <section class="alerts-hero">
+    <h1>Attendance <span>Alerts</span></h1>
+    <p>Monitor employees who moved outside their assigned work zones.</p>
+  </section>
+
+  <section class="alerts-stats" aria-label="Attendance alert summary">
+    <article class="alerts-stat">
+      <div><h2>Total Alerts {{ selectedDateIsToday ? 'Today' : '(Selected Date)' }}</h2><strong>{{ summary.alertsToday }}</strong></div>
+      <span class="alerts-icon alerts-icon-blue" aria-hidden="true">♧</span>
+    </article>
+    <article class="alerts-stat">
+      <div><h2>Employees Outside Now</h2><strong class="alerts-orange">{{ summary.currentlyOutside }}</strong></div>
+      <span class="alerts-icon alerts-icon-orange" aria-hidden="true">⌖</span>
+    </article>
+    <article class="alerts-stat">
+      <div><h2>Returned {{ selectedDateIsToday ? 'Today' : '(Selected Date)' }}</h2><strong class="alerts-green">{{ summary.returnedToday }}</strong></div>
+      <span class="alerts-icon alerts-icon-green" aria-hidden="true">✓</span>
+    </article>
+  </section>
+
+  <section class="alerts-filters" aria-label="Filters">
+    <h2><span class="alerts-filter-symbol" aria-hidden="true">▽</span> Filters</h2>
+    <form (ngSubmit)="applyFilters()" class="alerts-filter-grid">
+      <label>Date
+        <input type="date" name="alertDate" [(ngModel)]="date" required />
+      </label>
+      <label>Employee Name
+        <input type="search" name="employeeName" [(ngModel)]="employeeName" maxlength="100" placeholder="Search employee name..." />
+      </label>
+      <label>Status
+        <select name="status" [(ngModel)]="status">
+          <option value="">All Statuses</option>
+          <option value="OUTSIDE">Outside</option>
+          <option value="RETURNED">Returned</option>
+        </select>
+      </label>
+      <label>Work Location
+        <select name="workLocation" [(ngModel)]="workLocationId">
+          <option value="">All Work Locations</option>
+          @for (location of workLocations; track location.id) {
+            <option [value]="location.id">{{ location.name }}</option>
+          }
+        </select>
+      </label>
+      <div class="alerts-filter-actions">
+        <button type="submit" class="alerts-btn-primary">Apply</button>
+        <button type="button" class="alerts-btn-outline" (click)="resetFilters()">Reset</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="alerts-activity" aria-label="Alert Activity">
+    <header class="alerts-table-heading">
+      <h2>Alert Activity</h2>
+      <p>Employee exit and return activity for the selected date.</p>
+    </header>
+    @if (errorMessage) {
+      <div class="alerts-message error" role="alert">{{ errorMessage }}
+        <button type="button" (click)="loadAlerts()">Retry</button>
+      </div>
+    }
+    <div class="alerts-table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Work Location</th>
+            <th>Work Location Coordinates</th>
+            <th>Exit Location Name</th>
+            <th>Exit Coordinates</th>
+            <th>Left Work Location At</th>
+            <th>Re-entered At</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (alert of alerts; track alert.id) {
+            <tr>
+              <td><div class="alerts-employee">
+                <span class="alerts-avatar">{{ initials(alert.employeeName) }}</span>
+                <div><strong>{{ alert.employeeName }}</strong><small>{{ alert.employeeCode }}</small></div>
+              </div></td>
+              <td><strong class="alerts-location-name">{{ alert.workLocationName }}</strong></td>
+              <td><span class="alerts-coordinate">{{ coords(alert.workLocationLatitude, alert.workLocationLongitude) }}</span></td>
+              <td>{{ alert.exitLocationName || 'Location unavailable' }}</td>
+              <td><span class="alerts-coordinate">{{ coords(alert.exitLatitude, alert.exitLongitude) }}</span></td>
+              <td>{{ alert.leftAt | date:'MMM d, y':'+0530' }}<br><strong>{{ alert.leftAt | date:'h:mm a':'+0530' }}</strong></td>
+              <td>
+                @if (alert.returnedAt) {
+                  {{ alert.returnedAt | date:'MMM d, y':'+0530' }}<br>
+                  <strong>{{ alert.returnedAt | date:'h:mm a':'+0530' }}</strong>
+                } @else { — }
+              </td>
+              <td>
+                @if (alert.status === 'RETURNED') {
+                  <span class="alerts-status returned"><span aria-hidden="true">●</span> Returned</span>
+                } @else {
+                  <span class="alerts-status outside"><span aria-hidden="true">●</span> {{ alert.sessionActive ? 'Outside' : 'No re-entry recorded' }}</span>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="8" class="alerts-empty">
+              {{ loading ? 'Loading attendance alerts...' : 'No attendance alerts found for these filters.' }}
+            </td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (pagination.totalPages > 1) {
+      <footer class="alerts-pagination">
+        <span>{{ pagination.total }} records · Page {{ pagination.page }} of {{ pagination.totalPages }}</span>
+        <div>
+          <button type="button" (click)="changePage(page - 1)" [disabled]="page <= 1">Previous</button>
+          <button type="button" (click)="changePage(page + 1)" [disabled]="page >= pagination.totalPages">Next</button>
+        </div>
+      </footer>
+    }
+  </section>
+  <p class="alerts-disclaimer">Location events reflect GPS readings reported by the employee's browser, with server-side geofence checks. Background or offline activity may not be recorded. Times are shown in IST.</p>
+</div>

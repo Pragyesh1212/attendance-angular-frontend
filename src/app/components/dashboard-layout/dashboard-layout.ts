@@ -107,6 +107,10 @@ export class DashboardLayout implements OnInit, OnDestroy {
     return this.userName.charAt(0).toUpperCase();
   }
 
+  get pageTitle(): string {
+    return this.router.url.startsWith('/attendance-alerts') ? 'Attendance Alerts' : 'Dashboard';
+  }
+
   get roleName(): string {
     switch (this.user?.role) {
       case 'SUPER_ADMIN':

@@ -39,6 +39,13 @@ export const routes: Routes = [
             .then(m => m.Dashboard)
       },
       {
+        path: 'attendance-alerts',
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] },
+        loadComponent: () => import('./components/attendance-alerts/attendance-alerts')
+          .then(m => m.AttendanceAlerts),
+      },
+      {
         path: 'approvals',
         canActivate: [roleGuard],
         data: { roles: ['ADMIN', 'SUPER_ADMIN'] },

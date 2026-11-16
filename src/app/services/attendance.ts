@@ -82,6 +82,14 @@ export interface EmployeeLocationMonitorStatus {
   } | null;
 }
 
+export interface LocationAlertFix {
+  sessionId: string;
+  workLocationId: string;
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -131,6 +139,15 @@ export class Attendance {
 
   getMyLocationMonitor(): Observable<EmployeeLocationMonitorStatus> {
     return this.http.get<EmployeeLocationMonitorStatus>(`${this.API_URL}/my/location-monitor`);
+  }
+
+  /** Event-only reporting; does not stream a GPS trail. */
+  reportGeofenceExit(payload: LocationAlertFix): Observable<{ status: string }> {
+    return this.http.post<{ status: string }>(`${this.API_URL}/location-alerts/my/exit`, payload);
+  }
+
+  reportGeofenceReturn(payload: LocationAlertFix): Observable<{ status: string }> {
+    return this.http.post<{ status: string }>(`${this.API_URL}/location-alerts/my/return`, payload);
   }
 
   punchIn(data: PunchInPayload, deviceProof: string): Observable<any> {

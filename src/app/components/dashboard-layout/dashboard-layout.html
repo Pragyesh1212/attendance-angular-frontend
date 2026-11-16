@@ -305,6 +305,21 @@
         </a>
       }
 
+      <!-- Attendance Alerts: ADMIN only; no change to other roles. -->
+      @if (hasRole('ADMIN')) {
+        <a routerLink="/attendance-alerts"
+           routerLinkActive="bg-blue-50 text-blue-700"
+           (click)="closeMobileMenu()"
+           class="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700">
+          <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+               aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+          @if (!sidebarCollapsed) {
+            <span>{{ "Attendance Alerts" | t }}</span>
+          }
+        </a>
+      }
+
     </nav>
 
     <!-- Sidebar Footer -->
@@ -393,7 +408,7 @@
         <div>
 
           <h1 class="text-xl font-bold text-slate-900">
-            {{ "Dashboard" | t }}
+            {{ pageTitle | t }}
           </h1>
 
           <p class="hidden text-xs text-slate-500 sm:block">
