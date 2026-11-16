@@ -11,6 +11,7 @@ interface AlertItem {
   employeeCode: string;
   workLocationId: string;
   workLocationName: string;
+  workLocationAddress: string | null;
   workLocationLatitude: number;
   workLocationLongitude: number;
   exitLocationName: string | null;

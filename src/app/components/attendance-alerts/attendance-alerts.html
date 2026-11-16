@@ -81,7 +81,7 @@
                 <span class="alerts-avatar">{{ initials(alert.employeeName) }}</span>
                 <div><strong>{{ alert.employeeName }}</strong><small>{{ alert.employeeCode }}</small></div>
               </div></td>
-              <td><strong class="alerts-location-name">{{ alert.workLocationName }}</strong></td>
+              <td><strong class="alerts-location-name">{{ alert.workLocationAddress || alert.workLocationName }}</strong></td>
               <td><span class="alerts-coordinate">{{ coords(alert.workLocationLatitude, alert.workLocationLongitude) }}</span></td>
               <td>{{ alert.exitLocationName || 'Location unavailable' }}</td>
               <td><span class="alerts-coordinate">{{ coords(alert.exitLatitude, alert.exitLongitude) }}</span></td>
